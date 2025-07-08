@@ -1,58 +1,39 @@
 
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";  // importar
 import { getClientes, Cliente } from "../../services/clientesService";
-import ClienteForm from "./ClienteForm";
 
 const ClientesPage = () => {
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [loading, setLoading] = useState(true);
-    const [formVisible, setFormVisible] = useState(false);
-    const [clienteEnEdicion, setClienteEnEdicion] = useState<Cliente | undefined>(undefined);
+    const navigate = useNavigate(); // inicializar
 
     useEffect(() => {
+        const fetchClientes = async () => {
+            try {
+                const data = await getClientes();
+                setClientes(data);
+            } catch (error) {
+                console.error("Error al obtener clientes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchClientes();
     }, []);
 
-    const fetchClientes = async () => {
-        try {
-            const data = await getClientes();
-            setClientes(data);
-        } catch (error) {
-            console.error("Error al obtener clientes:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVer = (cliente: Cliente) => {
-        alert(`Ver cliente: ${cliente.nombre}`);
+    const handleNuevoCliente = () => {
+        navigate("/clientes/nuevo"); // navegar a formulario
     };
 
     const handleEditar = (cliente: Cliente) => {
-        setClienteEnEdicion(cliente);
-        setFormVisible(true);
-    };
-
-    const handleNuevoCliente = () => {
-        setClienteEnEdicion(undefined);
-        setFormVisible(true);
-    };
-
-    const handleGuardarCliente = (cliente: Cliente) => {
-        console.log("Guardado:", cliente);
-        // Aquí llamarías a la API para guardar (crear o editar)
-        setFormVisible(false);
-        fetchClientes(); // recargar la lista
-    };
-
-    const handleCancelar = () => {
-        setFormVisible(false);
+        navigate(`/clientes/${cliente.id}/editar`); // navegar a editar
     };
 
     return (
         <div style={{ padding: "2rem" }}>
             <h2>Clientes</h2>
-
             {loading ? (
                 <p>Cargando clientes...</p>
             ) : (
@@ -83,7 +64,7 @@ const ClientesPage = () => {
                                     <td style={tdStyle}>{cliente.telefono}</td>
                                     <td style={tdStyle}>{cliente.direccion}</td>
                                     <td style={tdStyle}>
-                                        <button onClick={() => handleVer(cliente)} style={{ marginRight: 8 }}>
+                                        <button onClick={() => alert(`Ver cliente: ${cliente.nombre}`)} style={{ marginRight: 8 }}>
                                             Ver
                                         </button>
                                         <button onClick={() => handleEditar(cliente)}>Editar</button>
@@ -95,18 +76,8 @@ const ClientesPage = () => {
 
                     <div style={{ marginTop: 20 }}>
                         <button onClick={() => navigate("/clientes/nuevo")}>Nuevo Cliente</button>
-
                     </div>
                 </>
-            )}
-
-            {/* Mostrar formulario si corresponde */}
-            {formVisible && (
-                <ClienteForm
-                    cliente={clienteEnEdicion}
-                    onGuardar={handleGuardarCliente}
-                    onCancelar={handleCancelar}
-                />
             )}
         </div>
     );

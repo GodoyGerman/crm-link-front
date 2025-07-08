@@ -67,3 +67,28 @@ export default tseslint.config([
   },
 ])
 ```
+# CRM Link Frontend
+
+Este es el frontend del sistema CRM Link, desarrollado con React y TypeScript usando Vite.
+
+## Características
+
+- Gestión de clientes: visualización, creación y edición.
+- Consumo de API REST con FastAPI en backend.
+- Ruteo con React Router.
+- Interfaz sencilla y funcional.
+
+## Requisitos
+
+- Node.js >= 16
+- npm o yarn
+- Backend corriendo (FastAPI) en `http://127.0.0.1:8000`
+
+## Instalación
+
+1. Clonar el repositorio
+
+```bash
+git clone https://github.com/GodoyGerman/crm-link-front.git
+cd crm-link-front
+

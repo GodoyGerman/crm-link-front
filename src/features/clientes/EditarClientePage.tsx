@@ -1,54 +1,31 @@
-// src/features/clientes/ClienteForm.tsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { crearCliente, getClientePorId, actualizarCliente } from "../../services/clientesService";
+import { useParams, useNavigate } from "react-router-dom";
+import { getClientePorId, actualizarCliente } from "../../services/clientesService";
 
+const EditarClientePage = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const [form, setForm] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-const ClienteForm = () => {
-    const navigate = useNavigate()
-    const { id } = useParams();
-
-
-
-    const [form, setForm] = useState({
-        nombre: "",
-        tipo_identificacion: "",
-        numero_identificacion: "",
-        correo: "",
-        telefono: "",
-        direccion: "",
-        ciudad: "",
-        nombre_empresa: "",
-        segmento: "",
-        redes_sociales: {
-            facebook: "",
-            linkedin: "",
-            instagram: "",
-        },
-        medio_adquisicion: "",
-        activo: true,
-    });
     useEffect(() => {
         if (id) {
-            getClientePorId(Number(id)).then((cliente) => {
-                setForm({
-                    ...cliente,
-                    redes_sociales: {
-                        facebook: cliente.redes_sociales?.facebook || "",
-                        linkedin: cliente.redes_sociales?.linkedin || "",
-                        instagram: cliente.redes_sociales?.instagram || "",
-                    },
+            getClientePorId(parseInt(id))
+                .then(data => {
+                    setForm(data);
+                    setLoading(false);
+                })
+                .catch(error => {
+                    console.error("Error al cargar cliente", error);
+                    setLoading(false);
                 });
-            }).catch((error) => {
-                console.error("Error cargando cliente:", error);
-            });
         }
     }, [id]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         if (name in form.redes_sociales) {
-            setForm(prev => ({
+            setForm((prev: any) => ({
                 ...prev,
                 redes_sociales: {
                     ...prev.redes_sociales,
@@ -56,29 +33,27 @@ const ClienteForm = () => {
                 },
             }));
         } else {
-            setForm(prev => ({ ...prev, [name]: value }));
+            setForm((prev: any) => ({ ...prev, [name]: value }));
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            if (id) {
-                await actualizarCliente(Number(id), form);
-                alert("Cliente actualizado con éxito");
-            } else {
-                await crearCliente(form);
-                alert("Cliente creado con éxito");
-            }
+            await actualizarCliente(form.id, form);
+            alert("Cliente actualizado con éxito");
             navigate("/clientes");
         } catch (error) {
-            console.error("Error al guardar cliente:", error);
+            console.error("Error al actualizar cliente:", error);
         }
     };
 
+    if (loading) return <p>Cargando cliente...</p>;
+    if (!form) return <p>Cliente no encontrado</p>;
+
     return (
         <div style={{ padding: "2rem" }}>
-            <h2>Nuevo Cliente</h2>
+            <h2>Editar Cliente</h2>
             <form onSubmit={handleSubmit}>
                 <input name="nombre" placeholder="Nombre" value={form.nombre} onChange={handleChange} /><br />
                 <input name="tipo_identificacion" placeholder="Tipo ID" value={form.tipo_identificacion} onChange={handleChange} /><br />
@@ -95,13 +70,18 @@ const ClienteForm = () => {
                 <input name="medio_adquisicion" placeholder="Medio de adquisición" value={form.medio_adquisicion} onChange={handleChange} /><br />
                 <label>
                     Activo:
-                    <input type="checkbox" name="activo" checked={form.activo} onChange={(e) => setForm(prev => ({ ...prev, activo: e.target.checked }))} />
-                </label><br />
-                <button type="submit">Guardar Cliente</button>
+                    <input
+                        type="checkbox"
+                        name="activo"
+                        checked={form.activo}
+                        onChange={(e) => setForm((prev: any) => ({ ...prev, activo: e.target.checked }))}
+                    />
+                </label>
+                <br />
+                <button type="submit">Actualizar Cliente</button>
             </form>
         </div>
     );
 };
 
-export default ClienteForm;
-
+export default EditarClientePage;
