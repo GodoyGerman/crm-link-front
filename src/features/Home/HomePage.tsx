@@ -9,6 +9,7 @@ const modules = [
     { label: "Facturas", path: "/facturas" },
     { label: "Service Desk", path: "/servicedesk" },
     { label: "Ventas", path: "/ventas" },
+    { label: "Encuestas", path: "/Encuestas" },
 ];
 
 const HomePage = () => {

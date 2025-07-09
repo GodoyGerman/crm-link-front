@@ -38,3 +38,7 @@ export const actualizarCliente = async (id: number, cliente: Cliente) => {
     const response = await api.put(`/clientes/${id}`, cliente);
     return response.data;
 };
+export const borrarCliente = async (id: number) => {
+    const response = await api.delete(`/clientes/${id}`);
+    return response.data;
+};
