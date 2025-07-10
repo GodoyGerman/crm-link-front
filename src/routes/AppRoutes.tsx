@@ -6,6 +6,7 @@ import HomePage from "../features/home/HomePage";
 import ClienteForm from "../features/clientes/ClienteForm";
 import ServiciosPage from "../features/servicios/ServiciosPage";
 import ServicioForm from "../features/servicios/ServicioForm";
+import CotizacionesPage from "../features/cotizaciones/CotizacionesPage";
 
 
 
@@ -24,8 +25,8 @@ export default function AppRoutes() {
                     <Route path="/clientes/:id/editar" element={<ClienteForm />} />
                     <Route path="servicios" element={<ServiciosPage />} />
                     <Route path="/servicios/nuevo" element={<ServicioForm />} />
-                    {/* Puedes agregar editar servicio */}
-                    {/* <Route path="servicios/:id/editar" element={<ServicioForm />} /> */}
+                    <Route path="servicios/:id/editar" element={<ServicioForm />} />
+                    <Route path="/cotizaciones" element={<CotizacionesPage />} />
                 </Route>
             </Routes>
         </BrowserRouter>

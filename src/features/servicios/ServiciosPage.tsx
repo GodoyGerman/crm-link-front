@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { getServicios, Servicio } from "../../services/serviciosService";
+import { getServicios, Servicio, deleteServicio } from "../../services/serviciosService";
 import { getCategorias, Categoria } from "../../services/categoriasService";
 import { useNavigate } from "react-router-dom";
+
 
 const ServiciosPage = () => {
     const [servicios, setServicios] = useState<Servicio[]>([]);
@@ -11,6 +12,25 @@ const ServiciosPage = () => {
 
     const handleNuevoServicio = () => {
         navigate("/servicios/nuevo");
+
+
+    };
+    const handleEditar = (id: number) => {
+        navigate(`/servicios/${id}/editar`);
+    };
+
+    const handleEliminar = async (id: number) => {
+        const confirmar = window.confirm("¿Estás seguro de que deseas eliminar este servicio?");
+        if (!confirmar) return;
+
+        try {
+            await deleteServicio(id); // ahora usa el servicio
+            setServicios(servicios.filter(servicio => servicio.id !== id));
+            alert("Servicio eliminado correctamente");
+        } catch (error) {
+            console.error("Error eliminando servicio:", error);
+            alert("No se pudo eliminar el servicio");
+        }
     };
 
     useEffect(() => {
@@ -20,6 +40,7 @@ const ServiciosPage = () => {
                     getServicios(),
                     getCategorias()
                 ]);
+                console.log("IDs de servicios recibidos:", serviciosData.map(s => s.id));
                 setServicios(serviciosData);
                 setCategorias(categoriasData);
             } catch (error) {
@@ -55,6 +76,7 @@ const ServiciosPage = () => {
                             <th style={thStyle}>Descuento</th>
                             <th style={thStyle}>Estado</th>
                             <th style={thStyle}>Fecha de Creación</th>
+                            <th style={thStyle}>descripcion</th>
                             <th style={thStyle}>Acciones</th>
                         </tr>
                     </thead>
@@ -68,11 +90,22 @@ const ServiciosPage = () => {
                                 <td style={tdStyle}>{servicio.unidad_medida}</td>
                                 <td style={tdStyle}>{servicio.duracion_estimada}</td>
                                 <td style={tdStyle}>{(servicio.descuento_porcentaje ?? 0) + "%"}</td>
-                                <td style={tdStyle}>{servicio.activo ? "Activo" : "Inactivo"}</td>
+                                <td style={tdStyle}>{servicio.estado ? "Activo" : "Inactivo"}</td>
                                 <td style={tdStyle}>{new Date(servicio.fecha_creacion).toLocaleDateString()}</td>
+                                <td style={tdStyle}>{servicio.descripcion}</td>
                                 <td style={tdStyle}>
-                                    <button style={{ marginRight: 8 }}>Editar</button>
-                                    <button style={{ backgroundColor: 'red', color: 'white' }}>Eliminar</button>
+                                    <button
+                                        onClick={() => handleEditar(servicio.id)}
+                                        style={{ marginRight: 8 }}
+                                    >
+                                        Editar
+                                    </button>
+                                    <button
+                                        onClick={() => handleEliminar(servicio.id)} // si vas a implementarlo luego
+                                        style={{ backgroundColor: 'red', color: 'white' }}
+                                    >
+                                        Eliminar
+                                    </button>
                                 </td>
                             </tr>
                         ))}

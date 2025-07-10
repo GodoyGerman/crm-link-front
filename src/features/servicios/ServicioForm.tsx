@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getCategorias, Categoria } from "../../services/categoriasService";
-import { crearServicio } from "../../services/serviciosService";
+import { crearServicio, getServicioPorId, actualizarServicio } from "../../services/serviciosService";
 
 const ServicioForm = () => {
+    const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+
     // Estados del formulario
     const [nombreServicio, setNombreServicio] = useState("");
     const [descripcion, setDescripcion] = useState("");
@@ -11,52 +15,79 @@ const ServicioForm = () => {
     const [unidadMedida, setUnidadMedida] = useState("");
     const [duracionEstimada, setDuracionEstimada] = useState("");
     const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0);
+    const [activo, setActivo] = useState(true);
 
-    // Estado para las categorías
     const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Cargar categorías al montar el componente
+    // Cargar categorías y, si hay id, cargar servicio para editar
     useEffect(() => {
-        async function cargarCategorias() {
+        async function cargarDatos() {
             try {
-                const data = await getCategorias();
-                setCategorias(data);
-                if (data.length > 0) {
-                    setCategoriaId(data[0].id); // Asignar primera categoría por defecto
+                const cats = await getCategorias();
+                setCategorias(cats);
+                if (cats.length > 0 && categoriaId === null) {
+                    setCategoriaId(cats[0].id);
+                }
+
+                if (id) {
+                    const servicioEdit = await getServicioPorId(parseInt(id));
+                    setNombreServicio(servicioEdit.nombre_servicio);
+                    setDescripcion(servicioEdit.descripcion ?? "");
+                    setCategoriaId(servicioEdit.categoria_id);
+                    setPrecioUnitario(Number(servicioEdit.precio_unitario));
+                    setUnidadMedida(servicioEdit.unidad_medida ?? "");
+                    setDuracionEstimada(servicioEdit.duracion_estimada ?? "");
+                    setDescuentoPorcentaje(Number(servicioEdit.descuento_porcentaje ?? 0));
+                    setActivo(servicioEdit.estado ?? true);
                 }
             } catch (error) {
-                console.error("Error al cargar categorías", error);
+                console.error("Error cargando datos", error);
+            } finally {
+                setLoading(false);
             }
         }
-        cargarCategorias();
-    }, []);
+        cargarDatos();
+    }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (categoriaId === null) {
             alert("Por favor selecciona una categoría");
             return;
         }
 
+        const data = {
+            nombre_servicio: nombreServicio,
+            descripcion,
+            categoria_id: categoriaId,
+            precio_unitario: precioUnitario,
+            unidad_medida: unidadMedida,
+            duracion_estimada: duracionEstimada,
+            descuento_porcentaje: descuentoPorcentaje,
+            estado: activo,
+        };
+
+        console.log("Datos a enviar:", data);
+
         try {
-            await crearServicio({
-                nombre_servicio: nombreServicio,
-                descripcion,
-                categoria_id: categoriaId,
-                precio_unitario: precioUnitario,
-                unidad_medida: unidadMedida,
-                duracion_estimada: duracionEstimada,
-                descuento_porcentaje: descuentoPorcentaje,
-                activo: true, // o estado según tu backend
-            });
-            alert("Servicio creado con éxito");
-            // Opcional: resetear formulario o redirigir
+            if (id) {
+                // Editar servicio
+                await actualizarServicio({ id: parseInt(id), ...data });
+                alert("Servicio actualizado con éxito");
+            } else {
+                // Crear nuevo servicio
+                await crearServicio(data);
+                alert("Servicio creado con éxito");
+            }
+            navigate("/servicios");
         } catch (error) {
-            console.error("Error al crear servicio", error);
-            alert("Hubo un error al crear el servicio");
+            console.error("Error al guardar servicio", error);
+            alert("Hubo un error al guardar el servicio");
         }
     };
+
+    if (loading) return <p>Cargando...</p>;
 
     return (
         <form onSubmit={handleSubmit}>
@@ -134,7 +165,18 @@ const ServicioForm = () => {
                 />
             </div>
 
-            <button type="submit">Crear Servicio</button>
+            <div>
+                <label htmlFor="activo">{activo ? "Activo" : "Inactivo"}</label>
+                <input
+                    id="activo"
+                    type="checkbox"
+                    checked={activo}
+                    onChange={(e) => setActivo(e.target.checked)}
+                />
+            </div>
+
+
+            <button type="submit">{id ? "Guardar Cambios" : "Crear Servicio"}</button>
         </form>
     );
 };
