@@ -65,6 +65,21 @@ export default function CotizacionesPage() {
                     ))}
                 </tbody>
             </table>
+            <button
+                onClick={() => navigate("/cotizaciones/nueva")}
+                style={{
+                    marginBottom: "1rem",
+                    padding: "8px 16px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                }}
+            >
+                + Nueva Cotización
+            </button>
+
         </div>
     );
 }

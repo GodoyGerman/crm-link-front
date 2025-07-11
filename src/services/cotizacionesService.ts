@@ -19,6 +19,6 @@ export const getCotizaciones = async (): Promise<Cotizacion[]> => {
 
 // Crear cotización
 export const crearCotizacion = async (cotizacion: Cotizacion): Promise<Cotizacion> => {
-    const response = await api.post("/cotizacion/consulta/", cotizacion);
+    const response = await api.post("/cotizacion/crear/", cotizacion);
     return response.data;
 };
