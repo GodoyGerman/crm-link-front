@@ -1,7 +1,7 @@
 import api from "./api";
 
 export interface Cotizacion {
-    id: number;
+    id?: number; // id puede ser opcional para crear
     nombre_cliente: string;
     tipo_identificacion: string;
     identificacion: string;
@@ -11,9 +11,14 @@ export interface Cotizacion {
     condiciones: string;
 }
 
-
-
+// Obtener cotizaciones
 export const getCotizaciones = async (): Promise<Cotizacion[]> => {
-    const response = await api.get("/cotizacion/cotizaciones/");
+    const response = await api.get("/cotizacion/consulta/");
+    return response.data;
+};
+
+// Crear cotización
+export const crearCotizacion = async (cotizacion: Cotizacion): Promise<Cotizacion> => {
+    const response = await api.post("/cotizacion/consulta/", cotizacion);
     return response.data;
 };

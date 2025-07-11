@@ -7,7 +7,7 @@ import ClienteForm from "../features/clientes/ClienteForm";
 import ServiciosPage from "../features/servicios/ServiciosPage";
 import ServicioForm from "../features/servicios/ServicioForm";
 import CotizacionesPage from "../features/cotizaciones/CotizacionesPage";
-
+import CotizacionForm from "../features/cotizaciones/CotizacionForm";
 
 
 <Route path="/clientes/nuevo" element={<ClienteForm />} />
@@ -27,6 +27,7 @@ export default function AppRoutes() {
                     <Route path="/servicios/nuevo" element={<ServicioForm />} />
                     <Route path="servicios/:id/editar" element={<ServicioForm />} />
                     <Route path="/cotizaciones" element={<CotizacionesPage />} />
+                    <Route path="/cotizaciones/nuevo" element={<CotizacionForm />} />
                 </Route>
             </Routes>
         </BrowserRouter>
