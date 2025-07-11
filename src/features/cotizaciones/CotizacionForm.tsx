@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { crearCotizacion } from "../../services/cotizacionesService";
-
+import { generarPDF } from "./generarPDF";
+import { actualizarEstadoCotizacion } from "../../services/cotizacionesService";
 
 interface Item {
     servicio: string;
@@ -62,7 +63,7 @@ export default function CotizacionForm() {
         ],
     });
 
-    // Actualiza campos de formulario simples
+    // Actualiza campos simples
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
@@ -73,7 +74,7 @@ export default function CotizacionForm() {
         }));
     };
 
-    // Actualiza un campo de un item en particular y recalcula subtotal del item y totales generales
+    // Actualiza items y recalcula totales
     const handleItemChange = (
         index: number,
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -81,22 +82,16 @@ export default function CotizacionForm() {
         const { name, value } = e.target;
         setForm((prev) => {
             const newItems = [...prev.items];
-            // Actualiza campo (cantidad y precio_unitario son números)
             if (name === "cantidad" || name === "precio_unitario") {
                 newItems[index][name] = Number(value);
             } else {
                 newItems[index][name] = value;
             }
-            // Recalcula subtotal item
             newItems[index].subtotal =
                 newItems[index].cantidad * newItems[index].precio_unitario;
 
-            // Recalcula subtotal total
-            const subtotalTotal = newItems.reduce(
-                (acc, item) => acc + item.subtotal,
-                0
-            );
-            const iva = subtotalTotal * 0.19; // IVA 19%
+            const subtotalTotal = newItems.reduce((acc, item) => acc + item.subtotal, 0);
+            const iva = subtotalTotal * 0.19;
             const total = subtotalTotal + iva;
 
             return {
@@ -109,7 +104,7 @@ export default function CotizacionForm() {
         });
     };
 
-    // Agrega un nuevo item vacío
+    // Agrega un item vacío
     const agregarItem = () => {
         setForm((prev) => ({
             ...prev,
@@ -126,14 +121,11 @@ export default function CotizacionForm() {
         }));
     };
 
-    // Elimina un item por índice y recalcula totales
+    // Elimina un item y recalcula totales
     const eliminarItem = (index: number) => {
         setForm((prev) => {
             const newItems = prev.items.filter((_, i) => i !== index);
-            const subtotalTotal = newItems.reduce(
-                (acc, item) => acc + item.subtotal,
-                0
-            );
+            const subtotalTotal = newItems.reduce((acc, item) => acc + item.subtotal, 0);
             const iva = subtotalTotal * 0.19;
             const total = subtotalTotal + iva;
             return {
@@ -146,24 +138,49 @@ export default function CotizacionForm() {
         });
     };
 
-    // Envía el formulario
-    const handleSubmit = async (e: React.FormEvent) => {
+    // Solo guardar cotización
+    const handleGuardar = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await crearCotizacion(form);
-            alert("Cotización creada con éxito");
+            alert("Cotización guardada con éxito.");
             navigate("/cotizaciones");
         } catch (error) {
-            console.error("Error al crear cotización:", error);
-            alert("Error al crear cotización");
+            console.error("Error al guardar cotización:", error);
+            alert("Error al guardar cotización");
+        }
+    };
+
+    // Guardar y enviar por correo
+    const handleGuardarYEnviar = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const nuevaCotizacion = await crearCotizacion(form);
+            const pdfBlob = await generarPDF(nuevaCotizacion);
+
+            const formData = new FormData();
+            formData.append("pdf", pdfBlob, `cotizacion_${nuevaCotizacion.id}.pdf`);
+            formData.append("correo", nuevaCotizacion.correo);
+
+            await fetch("http://127.0.0.1:8000/cotizacion/enviar-correo", {
+                method: "POST",
+                body: formData,
+            });
+
+            await actualizarEstadoCotizacion(nuevaCotizacion.id, "enviado");
+
+            alert("Cotización enviada por correo y guardada exitosamente.");
+            navigate("/cotizaciones");
+        } catch (error) {
+            console.error("Error al guardar o enviar:", error);
+            alert("Error al guardar o enviar la cotización");
         }
     };
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold mb-6">Crear Nueva Cotización</h2>
-            <form onSubmit={handleSubmit}>
-
+            <form>
                 {/* Datos cliente */}
                 <fieldset>
                     <legend className="font-semibold mb-2">Datos Cliente</legend>
@@ -274,15 +291,7 @@ export default function CotizacionForm() {
                         required
                         className="input"
                     />
-                    {/*
-                    <input
-                        name="pdf_url"
-                        placeholder="URL PDF"
-                        value={form.pdf_url}
-                        onChange={handleChange}
-                        className="input"
-                    />
-*/}
+
                     <textarea
                         name="condiciones"
                         placeholder="Condiciones"
@@ -297,7 +306,15 @@ export default function CotizacionForm() {
                     <legend className="font-semibold mb-2 mt-4">Items</legend>
 
                     {form.items.map((item, index) => (
-                        <div key={index} className="item-row" style={{ marginBottom: "1rem", borderBottom: "1px solid #ccc", paddingBottom: "0.5rem" }}>
+                        <div
+                            key={index}
+                            className="item-row"
+                            style={{
+                                marginBottom: "1rem",
+                                borderBottom: "1px solid #ccc",
+                                paddingBottom: "0.5rem",
+                            }}
+                        >
                             <input
                                 name="servicio"
                                 placeholder="Servicio"
@@ -343,12 +360,22 @@ export default function CotizacionForm() {
                                 value={item.subtotal.toFixed(2)}
                                 readOnly
                                 className="input"
-                                style={{ width: "100px", marginRight: "0.5rem", backgroundColor: "#eee" }}
+                                style={{
+                                    width: "100px",
+                                    marginRight: "0.5rem",
+                                    backgroundColor: "#eee",
+                                }}
                             />
                             <button
                                 type="button"
                                 onClick={() => eliminarItem(index)}
-                                style={{ backgroundColor: "red", color: "white", border: "none", padding: "4px 8px", cursor: "pointer" }}
+                                style={{
+                                    backgroundColor: "red",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "4px 8px",
+                                    cursor: "pointer",
+                                }}
                             >
                                 X
                             </button>
@@ -375,26 +402,29 @@ export default function CotizacionForm() {
                 {/* Totales */}
                 <fieldset>
                     <legend className="font-semibold mb-2 mt-4">Totales</legend>
-
                     <div>Subtotal: {form.subtotal.toFixed(2)}</div>
                     <div>IVA (19%): {form.iva.toFixed(2)}</div>
                     <div>Total: {form.total.toFixed(2)}</div>
                 </fieldset>
 
-                <button
-                    type="submit"
-                    style={{
-                        marginTop: "1.5rem",
-                        backgroundColor: "green",
-                        color: "white",
-                        padding: "12px 20px",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                    }}
-                >
-                    Guardar Cotización
-                </button>
+                {/* Botones de acción */}
+                <div className="flex gap-4 mt-6">
+                    <button
+                        type="button"
+                        onClick={handleGuardar}
+                        className="bg-gray-600 text-white px-4 py-2 rounded"
+                    >
+                        Guardar
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleGuardarYEnviar}
+                        className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                        Guardar y Enviar por Correo
+                    </button>
+                </div>
             </form>
         </div>
     );

@@ -1,11 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { getCotizaciones, Cotizacion } from "../../services/cotizacionesService";
 import { useNavigate } from "react-router-dom";
+import { generarPDF } from "./generarPDF";
+import { actualizarEstadoCotizacion } from "../../services/cotizacionesService";
 
 export default function CotizacionesPage() {
     const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+
+    // Definir la función afuera del useEffect para usar en botones
+    const handleEnviarCorreo = async (cotizacion: Cotizacion) => {
+        try {
+            const pdfBlob = await generarPDF(cotizacion); // Debe devolver Blob o File
+            const formData = new FormData();
+            formData.append("pdf", new File([pdfBlob], `cotizacion_${cotizacion.id}.pdf`, { type: "application/pdf" }));
+            formData.append("correo", cotizacion.correo);
+
+            const res = await fetch("http://127.0.0.1:8000/cotizacion/enviar-correo", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Error enviando correo");
+
+            // Actualizar estado a "enviado"
+            await actualizarEstadoCotizacion(cotizacion.id, "enviado");
+            alert("Correo enviado y estado actualizado");
+        } catch (err) {
+            console.error("Error enviando correo:", err);
+            alert("No se pudo enviar el correo");
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -18,7 +44,6 @@ export default function CotizacionesPage() {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -39,6 +64,7 @@ export default function CotizacionesPage() {
                         <th style={{ border: "1px solid #ccc", padding: "8px" }}>Estado</th>
                         <th style={{ border: "1px solid #ccc", padding: "8px" }}>Condiciones</th>
                         <th style={{ border: "1px solid #ccc", padding: "8px" }}>Acciones</th>
+                        <th style={{ border: "1px solid #ccc", padding: "8px" }}>Enviar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,14 +83,23 @@ export default function CotizacionesPage() {
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>{cot.estado}</td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>{cot.condiciones}</td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                <button style={{ color: "blue" }} onClick={() => navigate(`/cotizaciones/${cot.id}`)}>
+                                <button onClick={() => generarPDF(cot)} className="btn btn-secondary">
                                     Ver
+                                </button>
+                            </td>
+                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                <button
+                                    onClick={() => handleEnviarCorreo(cot)}
+                                    className="bg-blue-600 text-white px-2 py-1 rounded"
+                                >
+                                    Enviar por correo
                                 </button>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+
             <button
                 onClick={() => navigate("/cotizaciones/nueva")}
                 style={{
@@ -79,9 +114,9 @@ export default function CotizacionesPage() {
             >
                 + Nueva Cotización
             </button>
-
         </div>
     );
 }
+
 
 

@@ -22,3 +22,26 @@ export const crearCotizacion = async (cotizacion: Cotizacion): Promise<Cotizacio
     const response = await api.post("/cotizacion/crear/", cotizacion);
     return response.data;
 };
+export const enviarCotizacionPorCorreo = async (
+    email: string,
+    cotizacionId: number,
+    pdfFile: File
+) => {
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("cotizacion_id", cotizacionId.toString());
+    formData.append("archivo", pdfFile);
+
+    const response = await api.post("/cotizacion/enviar-correo/", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return response.data;
+};
+
+export const actualizarEstadoCotizacion = async (id: number, nuevoEstado: string) => {
+    const response = await api.put(`/cotizacion/actualizar-estado/${id}?nuevo_estado=${nuevoEstado}`);
+    return response.data;
+};
