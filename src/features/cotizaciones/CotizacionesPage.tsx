@@ -1,31 +1,37 @@
 import React, { useEffect, useState } from "react";
-import { getCotizaciones, Cotizacion } from "../../services/cotizacionesService";
+import { getCotizaciones, Cotizacion, enviarCotizacionPorCorreo, actualizarEstadoCotizacion } from "../../services/cotizacionesService";
 import { useNavigate } from "react-router-dom";
 import { generarPDF } from "./generarPDF";
-import { actualizarEstadoCotizacion } from "../../services/cotizacionesService";
+
 
 export default function CotizacionesPage() {
     const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Definir la función afuera del useEffect para usar en botones
+    const handleEditarCotizacion = (id: number) => {
+        navigate(`/cotizaciones/editar/${id}`);
+    };
+
     const handleEnviarCorreo = async (cotizacion: Cotizacion) => {
+        if (!cotizacion.id || !cotizacion.correo) {
+            alert("Falta ID o correo en la cotización");
+            return;
+        }
         try {
             const pdfBlob = await generarPDF(cotizacion); // Debe devolver Blob o File
-            const formData = new FormData();
-            formData.append("pdf", new File([pdfBlob], `cotizacion_${cotizacion.id}.pdf`, { type: "application/pdf" }));
-            formData.append("correo", cotizacion.correo);
+            const pdfFile = new File([pdfBlob], `cotizacion_${cotizacion.id}.pdf`, { type: "application/pdf" });
 
-            const res = await fetch("http://127.0.0.1:8000/cotizacion/enviar-correo", {
-                method: "POST",
-                body: formData,
-            });
-
-            if (!res.ok) throw new Error("Error enviando correo");
-
-            // Actualizar estado a "enviado"
+            await enviarCotizacionPorCorreo(cotizacion.correo, cotizacion.id, pdfFile);
             await actualizarEstadoCotizacion(cotizacion.id, "enviado");
+
+            // Actualizar estado local para reflejar cambio inmediato en UI
+            setCotizaciones(prev =>
+                prev.map(c =>
+                    c.id === cotizacion.id ? { ...c, estado: "enviado" } : c
+                )
+            );
+
             alert("Correo enviado y estado actualizado");
         } catch (err) {
             console.error("Error enviando correo:", err);
@@ -83,8 +89,11 @@ export default function CotizacionesPage() {
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>{cot.estado}</td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>{cot.condiciones}</td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                <button onClick={() => generarPDF(cot)} className="btn btn-secondary">
-                                    Ver
+                                <button
+                                    onClick={() => handleEditarCotizacion(cot.id!)}
+                                    className="bg-yellow-500 text-white px-2 py-1 rounded"
+                                >
+                                    Editar
                                 </button>
                             </td>
                             <td style={{ border: "1px solid #ccc", padding: "8px" }}>
@@ -103,7 +112,7 @@ export default function CotizacionesPage() {
             <button
                 onClick={() => navigate("/cotizaciones/nueva")}
                 style={{
-                    marginBottom: "1rem",
+                    marginTop: "1rem",
                     padding: "8px 16px",
                     backgroundColor: "#4CAF50",
                     color: "white",

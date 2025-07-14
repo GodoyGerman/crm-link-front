@@ -28,6 +28,7 @@ export default function AppRoutes() {
                     <Route path="servicios/:id/editar" element={<ServicioForm />} />
                     <Route path="/cotizaciones" element={<CotizacionesPage />} />
                     <Route path="/cotizaciones/nueva" element={<CotizacionForm />} />
+                    <Route path="/cotizaciones/editar/:id" element={<CotizacionForm modo="editar" />} />
                 </Route>
             </Routes>
         </BrowserRouter>

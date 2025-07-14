@@ -1,42 +1,83 @@
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
-export async function generarPDF(cotizacion: any): Promise<Blob> {
+// Función para convertir una URL de imagen a base64
+async function getBase64FromUrl(url: string): Promise<string> {
+    const res = await fetch(url);
+    const blob = await res.blob();
+
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            resolve(reader.result as string);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+export async function generarPDF(cotizacion: any) {
     const doc = new jsPDF();
 
-    doc.setFontSize(16);
-    doc.text("Cotización", 10, 10);
+    // Ajusta esta ruta a donde tengas el logo en tu proyecto (puede ser public/logo.png o assets/logo.png)
+    const logoBase64 = await getBase64FromUrl("/logo.png");
 
+    // Agregar logo
+    doc.addImage(logoBase64, "PNG", 10, 10, 40, 20);
+
+    // Título
+    doc.setFontSize(18);
+    doc.text("Link Soluciones Cotización", 105, 20, { align: "center" });
+
+    // Datos cliente
     doc.setFontSize(12);
-    doc.text(`Cliente: ${cotizacion.nombre_cliente}`, 10, 20);
-    doc.text(`Tipo Identificación: ${cotizacion.tipo_identificacion}`, 10, 30);
-    doc.text(`Identificación: ${cotizacion.identificacion}`, 10, 40);
-    doc.text(`Correo: ${cotizacion.correo}`, 10, 50);
-    doc.text(`Dirección: ${cotizacion.direccion}`, 10, 60);
-    doc.text(`Teléfono: ${cotizacion.telefono}`, 10, 70);
-    doc.text(`Ciudad: ${cotizacion.ciudad}`, 10, 80);
-    doc.text(`Contacto: ${cotizacion.contacto}`, 10, 90);
-    doc.text(`Condiciones: ${cotizacion.condiciones}`, 10, 100);
-    doc.text(`Fecha Emisión: ${cotizacion.fecha_emision}`, 10, 110);
-    doc.text(`Valida Hasta: ${cotizacion.valida_hasta}`, 10, 120);
+    doc.text(`Cliente: ${cotizacion.nombre_cliente}`, 10, 40);
+    doc.text(`Identificación: ${cotizacion.identificacion}`, 10, 48);
+    doc.text(`Correo: ${cotizacion.correo}`, 10, 56);
+    doc.text(`Dirección: ${cotizacion.direccion}`, 10, 64);
+    doc.text(`Teléfono: ${cotizacion.telefono}`, 10, 72);
 
+    // Fechas
+    doc.text(`Fecha emisión: ${cotizacion.fecha_emision}`, 140, 40);
+    doc.text(`Valida hasta: ${cotizacion.valida_hasta}`, 140, 48);
 
-    doc.text("Items:", 10, 140);
+    // Tabla de items
+    const columns = [
+        { header: "Servicio", dataKey: "servicio" },
+        { header: "Cantidad", dataKey: "cantidad" },
+        { header: "Unidad", dataKey: "unidad" },
+        { header: "Precio Unitario", dataKey: "precio_unitario" },
+        { header: "Subtotal", dataKey: "subtotal" },
+    ];
 
-    let y = 150;
-    cotizacion.items.forEach((item: any, index: number) => {
-        doc.text(
-            `${index + 1}. Servicio: ${item.servicio}, Cantidad: ${item.cantidad}, Unidad: ${item.unidad}, Precio Unitario: ${item.precio_unitario}, Subtotal: ${item.subtotal}`,
-            10,
-            y
-        );
-        y += 10;
+    const rows = cotizacion.items.map((item: any) => ({
+        servicio: item.servicio,
+        cantidad: item.cantidad,
+        unidad: item.unidad,
+        precio_unitario: item.precio_unitario.toFixed(2),
+        subtotal: item.subtotal.toFixed(2),
+    }));
+
+    autoTable(doc, {
+        startY: 80,
+        head: [columns.map((col) => col.header)],
+        body: rows.map((row) => columns.map((col) => row[col.dataKey])),
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
     });
 
-    doc.text(`Subtotal: ${cotizacion.subtotal}`, 10, y + 10);
-    doc.text(`IVA: ${cotizacion.iva}`, 10, y + 20);
-    doc.text(`Total: ${cotizacion.total}`, 10, y + 30);
+    // Totales debajo de la tabla
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
 
-    // 👉 Esta es la parte importante: retornamos el PDF como Blob
+    doc.text(`Subtotal: $${cotizacion.subtotal.toFixed(2)}`, 140, finalY);
+    doc.text(`IVA (19%): $${cotizacion.iva.toFixed(2)}`, 140, finalY + 8);
+    doc.text(`Total: $${cotizacion.total.toFixed(2)}`, 140, finalY + 16);
+
+    // Condiciones
+    doc.setFontSize(10);
+    doc.text("Condiciones:", 10, finalY + 25);
+    doc.text(cotizacion.condiciones || "-", 10, finalY + 32, { maxWidth: 180 });
+
     return doc.output("blob");
 }
 

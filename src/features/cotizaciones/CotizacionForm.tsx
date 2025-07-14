@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { crearCotizacion } from "../../services/cotizacionesService";
 import { generarPDF } from "./generarPDF";
-import { actualizarEstadoCotizacion } from "../../services/cotizacionesService";
+import { crearCotizacion, actualizarCotizacion, getCotizacionById, actualizarEstadoCotizacion } from "../../services/cotizacionesService";
+import { useParams } from "react-router-dom";
+
+
+
 
 interface Item {
+    id?: number;
     servicio: string;
     cantidad: number;
     unidad: string;
@@ -34,6 +38,8 @@ interface FormData {
 
 export default function CotizacionForm() {
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>(); // id será string o undefined
+    const isEditar = Boolean(id);
 
     const [form, setForm] = useState<FormData>({
         nombre_cliente: "",
@@ -62,6 +68,46 @@ export default function CotizacionForm() {
             },
         ],
     });
+
+    useEffect(() => {
+        if (isEditar && id) {
+            (async () => {
+                try {
+                    const cotizacionExistente = await getCotizacionById(Number(id));
+                    if (cotizacionExistente) {
+                        setForm({
+                            ...cotizacionExistente,
+                            items: cotizacionExistente.items.length
+                                ? cotizacionExistente.items
+                                : [{
+                                    id: cotizacionExistente.id, // <--- incluir el ID
+                                    servicio: "",
+                                    cantidad: 0,
+                                    unidad: "",
+                                    precio_unitario: 0,
+                                    subtotal: 0,
+                                }],
+                            tipo_identificacion: cotizacionExistente.tipo_identificacion || "",
+                            estado: cotizacionExistente.estado || "",
+                            correo: cotizacionExistente.correo || "",
+                            condiciones: cotizacionExistente.condiciones || "",
+                            direccion: cotizacionExistente.direccion || "",
+                            telefono: cotizacionExistente.telefono || "",
+                            ciudad: cotizacionExistente.ciudad || "",
+                            contacto: cotizacionExistente.contacto || "",
+                            pdf_url: cotizacionExistente.pdf_url || "",
+                        });
+                    } else {
+                        alert("Cotización no encontrada");
+                        navigate("/cotizaciones");
+                    }
+                } catch (error) {
+                    alert("Error cargando cotización");
+                    navigate("/cotizaciones");
+                }
+            })();
+        }
+    }, [id, isEditar, navigate]);
 
     // Actualiza campos simples
     const handleChange = (
@@ -142,7 +188,21 @@ export default function CotizacionForm() {
     const handleGuardar = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await crearCotizacion(form);
+            const datosLimpios = {
+                ...form,
+                estado: "pendiente",
+                items: form.items
+                    .filter(item => item.servicio && item.cantidad > 0)
+                    .map(({ id, ...rest }) => rest),
+            };
+
+            if (isEditar && id) {
+                await actualizarCotizacion(Number(id), datosLimpios);
+            } else {
+                await crearCotizacion(datosLimpios);
+            }
+
+
             alert("Cotización guardada con éxito.");
             navigate("/cotizaciones");
         } catch (error) {
@@ -150,24 +210,37 @@ export default function CotizacionForm() {
             alert("Error al guardar cotización");
         }
     };
-
     // Guardar y enviar por correo
     const handleGuardarYEnviar = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const nuevaCotizacion = await crearCotizacion(form);
-            const pdfBlob = await generarPDF(nuevaCotizacion);
+            const datosLimpios = {
+                ...form,
+                estado: "enviado",
+                items: form.items
+                    .filter(item => item.servicio && item.cantidad > 0)
+                    .map(({ id, ...rest }) => rest),
+            };
+
+            let cotizacionGuardada;
+
+            if (isEditar && id) {
+                await actualizarCotizacion(Number(id), datosLimpios);
+                cotizacionGuardada = { ...datosLimpios, id: Number(id) };
+            } else {
+                cotizacionGuardada = await crearCotizacion(datosLimpios);
+            }
+
+            const pdfBlob = await generarPDF(cotizacionGuardada);
 
             const formData = new FormData();
-            formData.append("pdf", pdfBlob, `cotizacion_${nuevaCotizacion.id}.pdf`);
-            formData.append("correo", nuevaCotizacion.correo);
+            formData.append("pdf", pdfBlob, `cotizacion_${cotizacionGuardada.id}.pdf`);
+            formData.append("correo", cotizacionGuardada.correo);
 
             await fetch("http://127.0.0.1:8000/cotizacion/enviar-correo", {
                 method: "POST",
                 body: formData,
             });
-
-            await actualizarEstadoCotizacion(nuevaCotizacion.id, "enviado");
 
             alert("Cotización enviada por correo y guardada exitosamente.");
             navigate("/cotizaciones");
@@ -257,7 +330,7 @@ export default function CotizacionForm() {
 
                 {/* Fechas y estado */}
                 <fieldset>
-                    <legend className="font-semibold mb-2 mt-4">Fechas y Estado</legend>
+                    <legend className="font-semibold mb-2 mt-4">Fechas</legend>
 
                     <label>
                         Fecha Emisión:
@@ -283,14 +356,7 @@ export default function CotizacionForm() {
                         />
                     </label>
 
-                    <input
-                        name="estado"
-                        placeholder="Estado"
-                        value={form.estado}
-                        onChange={handleChange}
-                        required
-                        className="input"
-                    />
+
 
                     <textarea
                         name="condiciones"
