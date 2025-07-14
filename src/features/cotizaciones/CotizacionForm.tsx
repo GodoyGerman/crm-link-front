@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { generarPDF } from "./generarPDF";
-import { crearCotizacion, actualizarCotizacion, getCotizacionById, actualizarEstadoCotizacion } from "../../services/cotizacionesService";
-import { useParams } from "react-router-dom";
-
-
-
+import {
+    crearCotizacion,
+    actualizarCotizacion,
+    getCotizacionById,
+} from "../../services/cotizacionesService";
+import { getClientes, Cliente } from "../../services/clientesService";
 
 interface Item {
     id?: number;
@@ -38,7 +39,7 @@ interface FormData {
 
 export default function CotizacionForm() {
     const navigate = useNavigate();
-    const { id } = useParams<{ id: string }>(); // id será string o undefined
+    const { id } = useParams<{ id: string }>();
     const isEditar = Boolean(id);
 
     const [form, setForm] = useState<FormData>({
@@ -69,6 +70,26 @@ export default function CotizacionForm() {
         ],
     });
 
+    const [clientes, setClientes] = useState<Cliente[]>([]);
+    const [loadingClientes, setLoadingClientes] = useState(true);
+
+    // Cargar clientes para selección
+    useEffect(() => {
+        const fetchClientes = async () => {
+            try {
+                const data = await getClientes();
+                setClientes(data);
+            } catch (error) {
+                console.error("Error cargando clientes:", error);
+            } finally {
+                setLoadingClientes(false);
+            }
+        };
+
+        fetchClientes();
+    }, []);
+
+    // Cargar cotización existente si es edición
     useEffect(() => {
         if (isEditar && id) {
             (async () => {
@@ -79,14 +100,16 @@ export default function CotizacionForm() {
                             ...cotizacionExistente,
                             items: cotizacionExistente.items.length
                                 ? cotizacionExistente.items
-                                : [{
-                                    id: cotizacionExistente.id, // <--- incluir el ID
-                                    servicio: "",
-                                    cantidad: 0,
-                                    unidad: "",
-                                    precio_unitario: 0,
-                                    subtotal: 0,
-                                }],
+                                : [
+                                    {
+                                        id: cotizacionExistente.id,
+                                        servicio: "",
+                                        cantidad: 0,
+                                        unidad: "",
+                                        precio_unitario: 0,
+                                        subtotal: 0,
+                                    },
+                                ],
                             tipo_identificacion: cotizacionExistente.tipo_identificacion || "",
                             estado: cotizacionExistente.estado || "",
                             correo: cotizacionExistente.correo || "",
@@ -184,7 +207,24 @@ export default function CotizacionForm() {
         });
     };
 
-    // Solo guardar cotización
+    // Cuando se selecciona un cliente, cargar sus datos en el formulario
+    const handleClienteChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const nombreSeleccionado = e.target.value;
+        const clienteSeleccionado = clientes.find((c) => c.nombre === nombreSeleccionado);
+
+        setForm((prev) => ({
+            ...prev,
+            nombre_cliente: nombreSeleccionado,
+            tipo_identificacion: clienteSeleccionado?.tipo_identificacion || "",
+            identificacion: clienteSeleccionado?.numero_identificacion || "",
+            correo: clienteSeleccionado?.correo || "",
+            direccion: clienteSeleccionado?.direccion || "",
+            telefono: clienteSeleccionado?.telefono || "",
+            ciudad: clienteSeleccionado?.ciudad || "",
+        }));
+    };
+
+    // Guardar cotización
     const handleGuardar = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -192,7 +232,7 @@ export default function CotizacionForm() {
                 ...form,
                 estado: "pendiente",
                 items: form.items
-                    .filter(item => item.servicio && item.cantidad > 0)
+                    .filter((item) => item.servicio && item.cantidad > 0)
                     .map(({ id, ...rest }) => rest),
             };
 
@@ -202,7 +242,6 @@ export default function CotizacionForm() {
                 await crearCotizacion(datosLimpios);
             }
 
-
             alert("Cotización guardada con éxito.");
             navigate("/cotizaciones");
         } catch (error) {
@@ -210,6 +249,7 @@ export default function CotizacionForm() {
             alert("Error al guardar cotización");
         }
     };
+
     // Guardar y enviar por correo
     const handleGuardarYEnviar = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -218,7 +258,7 @@ export default function CotizacionForm() {
                 ...form,
                 estado: "enviado",
                 items: form.items
-                    .filter(item => item.servicio && item.cantidad > 0)
+                    .filter((item) => item.servicio && item.cantidad > 0)
                     .map(({ id, ...rest }) => rest),
             };
 
@@ -252,20 +292,35 @@ export default function CotizacionForm() {
 
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6">Crear Nueva Cotización</h2>
+            <h2 className="text-2xl font-bold mb-6">
+                {isEditar ? "Editar Cotización" : "Crear Nueva Cotización"}
+            </h2>
             <form>
                 {/* Datos cliente */}
                 <fieldset>
                     <legend className="font-semibold mb-2">Datos Cliente</legend>
 
-                    <input
-                        name="nombre_cliente"
-                        placeholder="Nombre Cliente"
-                        value={form.nombre_cliente}
-                        onChange={handleChange}
-                        required
-                        className="input"
-                    />
+                    <label>
+                        Cliente:
+                        {loadingClientes ? (
+                            <div>Cargando clientes...</div>
+                        ) : (
+                            <select
+                                name="nombre_cliente"
+                                value={form.nombre_cliente}
+                                onChange={handleClienteChange}
+                                required
+                                className="input"
+                            >
+                                <option value="">-- Seleccione un cliente --</option>
+                                {clientes.map((c) => (
+                                    <option key={c.id} value={c.nombre}>
+                                        {c.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </label>
 
                     <input
                         name="tipo_identificacion"
@@ -355,8 +410,6 @@ export default function CotizacionForm() {
                             className="input"
                         />
                     </label>
-
-
 
                     <textarea
                         name="condiciones"
@@ -495,3 +548,4 @@ export default function CotizacionForm() {
         </div>
     );
 }
+
