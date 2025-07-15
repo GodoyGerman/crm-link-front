@@ -90,32 +90,38 @@ const ServicioForm = () => {
     if (loading) return <p>Cargando...</p>;
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label>Nombre del Servicio</label>
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow-md space-y-4">
+            <h2 className="text-xl font-semibold mb-4">{id ? "Editar Servicio" : "Crear Servicio"}</h2>
+
+            <div className="space-y-1">
+                <label className="block font-medium">Nombre del Servicio</label>
                 <input
                     type="text"
                     value={nombreServicio}
                     onChange={(e) => setNombreServicio(e.target.value)}
                     required
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 />
             </div>
 
-            <div>
-                <label>Descripción</label>
+            <div className="space-y-1">
+                <label className="block font-medium">Descripción</label>
                 <textarea
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 />
             </div>
 
-            <div>
-                <label>Categoría</label>
+            <div className="space-y-1">
+                <label className="block font-medium">Categoría</label>
                 <select
                     value={categoriaId ?? ""}
                     onChange={(e) => setCategoriaId(Number(e.target.value))}
                     required
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 >
+                    <option value="" disabled>Seleccione una categoría</option>
                     {categorias.map((cat) => (
                         <option key={cat.id} value={cat.id}>
                             {cat.nombre}
@@ -124,8 +130,8 @@ const ServicioForm = () => {
                 </select>
             </div>
 
-            <div>
-                <label>Precio Unitario</label>
+            <div className="space-y-1">
+                <label className="block font-medium">Precio Unitario</label>
                 <input
                     type="number"
                     value={precioUnitario}
@@ -133,50 +139,61 @@ const ServicioForm = () => {
                     required
                     min={0}
                     step={0.01}
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 />
             </div>
 
-            <div>
-                <label>Unidad de Medida</label>
+            <div className="space-y-1">
+                <label className="block font-medium">Unidad de Medida</label>
                 <input
                     type="text"
                     value={unidadMedida}
                     onChange={(e) => setUnidadMedida(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 />
             </div>
 
-            <div>
-                <label>Duración Estimada</label>
+            <div className="space-y-1">
+                <label className="block font-medium">Duración Estimada</label>
                 <input
                     type="text"
                     value={duracionEstimada}
                     onChange={(e) => setDuracionEstimada(e.target.value)}
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 />
             </div>
 
-            <div>
-                <label>Descuento (%)</label>
+            <div className="space-y-1">
+                <label className="block font-medium">Descuento (%)</label>
                 <input
                     type="number"
                     value={descuentoPorcentaje}
                     onChange={(e) => setDescuentoPorcentaje(Number(e.target.value))}
                     min={0}
                     max={100}
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300"
                 />
             </div>
 
-            <div>
-                <label htmlFor="activo">{activo ? "Activo" : "Inactivo"}</label>
+            <div className="flex items-center space-x-2">
                 <input
                     id="activo"
                     type="checkbox"
                     checked={activo}
                     onChange={(e) => setActivo(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
+                <label htmlFor="activo" className="text-sm font-medium text-gray-700">
+                    {activo ? "Activo" : "Inactivo"}
+                </label>
             </div>
 
-
-            <button type="submit">{id ? "Guardar Cambios" : "Crear Servicio"}</button>
+            <button
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+            >
+                {id ? "Guardar Cambios" : "Crear Servicio"}
+            </button>
         </form>
     );
 };
