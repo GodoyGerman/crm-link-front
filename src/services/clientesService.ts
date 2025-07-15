@@ -42,3 +42,9 @@ export const borrarCliente = async (id: number) => {
     const response = await api.delete(`/clientes/${id}`);
     return response.data;
 };
+export const buscarClientePorDocumento = async (numero: string): Promise<Cliente> => {
+    const response = await api.get(`/clientes/clientes/buscar/`, {
+        params: { numero_identificacion: numero },
+    });
+    return response.data;
+};
