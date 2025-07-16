@@ -58,6 +58,14 @@ const ServiciosPage = () => {
         return categoria ? categoria.nombre : "Sin categoría";
     };
 
+    const formatearPrecio = (valor: number) => {
+        return new Intl.NumberFormat("es-CO", {
+            style: "currency",
+            currency: "COP",
+            minimumFractionDigits: 0,
+        }).format(valor);
+    };
+
     return (
         <div className="p-8">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Servicios</h2>
@@ -88,7 +96,9 @@ const ServiciosPage = () => {
                                     <td className="px-4 py-2 text-sm text-gray-800">{servicio.id}</td>
                                     <td className="px-4 py-2 text-sm text-gray-800">{servicio.nombre_servicio}</td>
                                     <td className="px-4 py-2 text-sm text-gray-800">{getNombreCategoria(servicio.categoria_id)}</td>
-                                    <td className="px-4 py-2 text-sm text-gray-800">${servicio.precio_unitario}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">
+                                        {formatearPrecio(servicio.precio_unitario * (1 - servicio.descuento_porcentaje / 100))}
+                                    </td>
                                     <td className="px-4 py-2 text-sm text-gray-800">{servicio.unidad_medida}</td>
                                     <td className="px-4 py-2 text-sm text-gray-800">{servicio.duracion_estimada}</td>
                                     <td className="px-4 py-2 text-sm text-gray-800">

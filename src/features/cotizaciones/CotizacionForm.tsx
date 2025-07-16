@@ -241,8 +241,13 @@ export default function CotizacionForm() {
                 // Si no hay cantidad, dejar 0 para evitar NaN
                 newItems[index].cantidad = newItems[index].cantidad || 0;
 
-                newItems[index].subtotal =
-                    newItems[index].cantidad * newItems[index].precio_unitario;
+                // Calcula descuento si aplica
+                const descuento = servicioSeleccionado?.descuento_porcentaje || 0;
+                const precioConDescuento =
+                    newItems[index].precio_unitario * (1 - descuento / 100);
+
+                // Actualiza subtotal con descuento aplicado
+                newItems[index].subtotal = newItems[index].cantidad * precioConDescuento;
             } else if (name === "cantidad" || name === "precio_unitario") {
                 newItems[index][name] = Number(value);
                 newItems[index].subtotal =
@@ -384,6 +389,15 @@ export default function CotizacionForm() {
             alert("Error al guardar o enviar la cotización");
         }
     };
+
+    const formatearPrecio = (valor: number) => {
+        return new Intl.NumberFormat("es-CO", {
+            style: "currency",
+            currency: "COP",
+            minimumFractionDigits: 0,
+        }).format(valor);
+    };
+
 
     // JSX: Formulario completo
     return (
@@ -587,10 +601,11 @@ export default function CotizacionForm() {
                                 min={0}
                                 className="px-3 py-2 border rounded"
                             />
+
                             <input
                                 name="subtotal"
                                 placeholder="Subtotal"
-                                value={item.subtotal.toFixed(2)}
+                                value={formatearPrecio(item.subtotal)}
                                 readOnly
                                 className="px-3 py-2 border rounded"
                             />
@@ -621,7 +636,7 @@ export default function CotizacionForm() {
                             <label className="block text-sm font-medium text-gray-700">Subtotal</label>
                             <input
                                 type="text"
-                                value={form.subtotal.toFixed(2)}
+                                value={formatearPrecio(form.subtotal)}
                                 readOnly
                                 className="input"
                             />
@@ -630,7 +645,7 @@ export default function CotizacionForm() {
                             <label className="block text-sm font-medium text-gray-700">IVA (19%)</label>
                             <input
                                 type="text"
-                                value={form.iva.toFixed(2)}
+                                value={formatearPrecio(form.iva)}
                                 readOnly
                                 className="input"
                             />
@@ -639,7 +654,7 @@ export default function CotizacionForm() {
                             <label className="block text-sm font-medium text-gray-700">Total</label>
                             <input
                                 type="text"
-                                value={form.total.toFixed(2)}
+                                value={formatearPrecio(form.total)}
                                 readOnly
                                 className="input"
                             />

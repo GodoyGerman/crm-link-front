@@ -1,6 +1,15 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// Función interna para formatear moneda COP sin decimales
+const formatearPrecio = (valor: number) => {
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        minimumFractionDigits: 0,
+    }).format(valor);
+};
+
 // Función para convertir una imagen en base64
 async function getBase64FromUrl(url: string): Promise<string> {
     const res = await fetch(url);
@@ -57,12 +66,13 @@ export async function generarPDF(cotizacion: any) {
         { header: "Subtotal", dataKey: "subtotal" },
     ];
 
+    // Aquí aplicamos formateo para precio_unitario y subtotal
     const rows = cotizacion.items.map((item: any) => ({
         servicio: item.servicio,
         cantidad: item.cantidad,
         unidad: item.unidad,
-        precio_unitario: `$${item.precio_unitario.toFixed(2)}`,
-        subtotal: `$${item.subtotal.toFixed(2)}`,
+        precio_unitario: formatearPrecio(item.precio_unitario),
+        subtotal: formatearPrecio(item.subtotal),
     }));
 
     autoTable(doc, {
@@ -96,13 +106,13 @@ export async function generarPDF(cotizacion: any) {
         },
     });
 
-    // Totales
+    // Totales formateados
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     doc.setFontSize(11);
     doc.setFont(undefined, "bold");
-    doc.text(`Subtotal: $${cotizacion.subtotal.toFixed(2)}`, 200, finalY, { align: "right" });
-    doc.text(`IVA (19%): $${cotizacion.iva.toFixed(2)}`, 200, finalY + 8, { align: "right" });
-    doc.text(`Total: $${cotizacion.total.toFixed(2)}`, 200, finalY + 16, { align: "right" });
+    doc.text(`Subtotal: ${formatearPrecio(cotizacion.subtotal)}`, 200, finalY, { align: "right" });
+    doc.text(`IVA (19%): ${formatearPrecio(cotizacion.iva)}`, 200, finalY + 8, { align: "right" });
+    doc.text(`Total: ${formatearPrecio(cotizacion.total)}`, 200, finalY + 16, { align: "right" });
     doc.setFont(undefined, "normal");
 
     // Condiciones
