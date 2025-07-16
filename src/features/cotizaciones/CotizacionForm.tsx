@@ -14,9 +14,11 @@ interface Item {
     servicio: string;
     cantidad: number;
     unidad: string;
-    precio_unitario: number;
-    subtotal: number;
+    precio_unitario: number;  // Precio sin descuento
+    descuento_porcentaje: number;  // Nuevo campo
+    subtotal: number;  // Ya con descuento aplicado
 }
+
 
 interface FormData {
     nombre_cliente: string;
@@ -67,6 +69,7 @@ export default function CotizacionForm() {
                 cantidad: 0,
                 unidad: "",
                 precio_unitario: 0,
+                descuento_porcentaje: 0,  // inicializar en 0
                 subtotal: 0,
             },
         ],
@@ -237,23 +240,29 @@ export default function CotizacionForm() {
                 newItems[index].servicio = value;
                 newItems[index].unidad = servicioSeleccionado?.unidad_medida || "";
                 newItems[index].precio_unitario = servicioSeleccionado?.precio_unitario || 0;
+                newItems[index].descuento_porcentaje = servicioSeleccionado?.descuento_porcentaje || 0;
 
-                // Si no hay cantidad, dejar 0 para evitar NaN
+                // Cantidad debe tener valor numérico
                 newItems[index].cantidad = newItems[index].cantidad || 0;
 
-                // Calcula descuento si aplica
-                const descuento = servicioSeleccionado?.descuento_porcentaje || 0;
+                // Calcula subtotal con descuento
+                const descuento = newItems[index].descuento_porcentaje;
                 const precioConDescuento =
                     newItems[index].precio_unitario * (1 - descuento / 100);
 
-                // Actualiza subtotal con descuento aplicado
                 newItems[index].subtotal = newItems[index].cantidad * precioConDescuento;
-            } else if (name === "cantidad" || name === "precio_unitario") {
-                newItems[index][name] = Number(value);
-                newItems[index].subtotal =
-                    newItems[index].cantidad * newItems[index].precio_unitario;
-            } else {
-                newItems[index][name] = value;
+            } else if (name === "cantidad") {
+                newItems[index].cantidad = Number(value);
+                const descuento = newItems[index].descuento_porcentaje || 0;
+                const precioConDescuento =
+                    newItems[index].precio_unitario * (1 - descuento / 100);
+                newItems[index].subtotal = newItems[index].cantidad * precioConDescuento;
+            } else if (name === "precio_unitario") {
+                newItems[index].precio_unitario = Number(value);
+                const descuento = newItems[index].descuento_porcentaje || 0;
+                const precioConDescuento =
+                    newItems[index].precio_unitario * (1 - descuento / 100);
+                newItems[index].subtotal = newItems[index].cantidad * precioConDescuento;
             }
 
             // Calcular totales
@@ -282,6 +291,7 @@ export default function CotizacionForm() {
                     cantidad: 0,
                     unidad: "",
                     precio_unitario: 0,
+                    descuento_porcentaje: 0,
                     subtotal: 0,
                 },
             ],
@@ -397,7 +407,6 @@ export default function CotizacionForm() {
             minimumFractionDigits: 0,
         }).format(valor);
     };
-
 
     // JSX: Formulario completo
     return (
@@ -561,58 +570,75 @@ export default function CotizacionForm() {
                     <legend className="text-lg font-semibold text-gray-700">Items</legend>
 
                     {form.items.map((item, index) => (
-                        <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center mt-4 border-b pb-2">
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-7 gap-2 items-center mt-4 border-b pb-2">
                             <select
                                 name="servicio"
                                 value={item.servicio}
                                 onChange={(e) => handleItemChange(index, e)}
                                 required
-                                className="col-span-2 px-3 py-2 border rounded"
+                                className="col-span-2 px-2 py-1 border rounded"
                             >
-                                <option value="">-- Servicio --</option>
+                                <option value="">-- Seleccione un servicio --</option>
                                 {servicios.map((s) => (
                                     <option key={s.id} value={s.nombre_servicio}>
                                         {s.nombre_servicio}
                                     </option>
                                 ))}
                             </select>
+
                             <input
                                 name="cantidad"
                                 type="number"
-                                placeholder="Cantidad"
+                                min={0}
                                 value={item.cantidad}
                                 onChange={(e) => handleItemChange(index, e)}
-                                min={0}
-                                className="px-3 py-2 border rounded"
+                                required
+                                className="px-2 py-1 border rounded"
+                                placeholder="Cantidad"
                             />
+
                             <input
                                 name="unidad"
-                                placeholder="Unidad"
                                 value={item.unidad}
                                 readOnly
-                                className="px-3 py-2 border rounded"
+                                className="px-2 py-1 border rounded bg-gray-100"
+                                placeholder="Unidad"
                             />
+
                             <input
                                 name="precio_unitario"
                                 type="number"
-                                placeholder="Precio"
+                                min={0}
                                 value={item.precio_unitario}
                                 onChange={(e) => handleItemChange(index, e)}
+                                required
+                                className="px-2 py-1 border rounded"
+                                placeholder="Precio Unitario"
+                            />
+
+                            <input
+                                name="descuento_porcentaje"
+                                type="number"
                                 min={0}
-                                className="px-3 py-2 border rounded"
+                                max={100}
+                                value={item.descuento_porcentaje}
+                                readOnly
+                                className="px-2 py-1 border rounded bg-gray-100"
+                                placeholder="% Descuento"
                             />
 
                             <input
                                 name="subtotal"
-                                placeholder="Subtotal"
                                 value={formatearPrecio(item.subtotal)}
                                 readOnly
-                                className="px-3 py-2 border rounded"
+                                className="px-2 py-1 border rounded bg-gray-100"
+                                placeholder="Subtotal"
                             />
+
                             <button
                                 type="button"
                                 onClick={() => eliminarItem(index)}
-                                className="col-span-full md:col-auto bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                className="text-red-600 hover:text-red-800"
                             >
                                 Eliminar
                             </button>
@@ -624,69 +650,44 @@ export default function CotizacionForm() {
                         onClick={agregarItem}
                         className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                     >
-                        + Agregar Item
+                        Agregar Item
                     </button>
                 </fieldset>
 
                 {/* Totales */}
-                <fieldset className="border border-gray-200 rounded p-4">
-                    <legend className="text-lg font-semibold text-gray-700">Totales</legend>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                <fieldset className="border border-gray-200 rounded p-4 mt-4">
+                    <div className="flex justify-end space-x-6 text-lg font-semibold">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Subtotal</label>
-                            <input
-                                type="text"
-                                value={formatearPrecio(form.subtotal)}
-                                readOnly
-                                className="input"
-                            />
+                            <span>Subtotal:</span> {formatearPrecio(form.subtotal)}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">IVA (19%)</label>
-                            <input
-                                type="text"
-                                value={formatearPrecio(form.iva)}
-                                readOnly
-                                className="input"
-                            />
+                            <span>IVA (19%):</span> {formatearPrecio(form.iva)}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Total</label>
-                            <input
-                                type="text"
-                                value={formatearPrecio(form.total)}
-                                readOnly
-                                className="input"
-                            />
+                            <span>Total:</span> {formatearPrecio(form.total)}
                         </div>
                     </div>
                 </fieldset>
 
                 {/* Botones */}
-                <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                <div className="flex space-x-4 justify-end mt-6">
                     <button
                         type="submit"
                         onClick={handleGuardar}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+                        className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                     >
                         Guardar
                     </button>
                     <button
                         type="submit"
                         onClick={handleGuardarYEnviar}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
+                        className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
                     >
                         Guardar y Enviar
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate("/cotizaciones")}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded"
-                    >
-                        Cancelar
                     </button>
                 </div>
             </form>
         </div>
     );
 }
+
