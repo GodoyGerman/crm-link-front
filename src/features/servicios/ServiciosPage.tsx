@@ -59,62 +59,76 @@ const ServiciosPage = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>Servicios</h2>
+        <div className="p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Servicios</h2>
+
             {loading ? (
-                <p>Cargando servicios...</p>
+                <p className="text-gray-600">Cargando servicios...</p>
             ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                        <tr>
-                            <th style={thStyle}>ID</th>
-                            <th style={thStyle}>Nombre Servicio</th>
-                            <th style={thStyle}>Categoría</th>
-                            <th style={thStyle}>Precio Unitario</th>
-                            <th style={thStyle}>Unidad de Medida</th>
-                            <th style={thStyle}>Duración Estimada</th>
-                            <th style={thStyle}>Descuento</th>
-                            <th style={thStyle}>Estado</th>
-                            <th style={thStyle}>Fecha de Creación</th>
-                            <th style={thStyle}>descripcion</th>
-                            <th style={thStyle}>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {servicios.map(servicio => (
-                            <tr key={servicio.id}>
-                                <td style={tdStyle}>{servicio.id}</td>
-                                <td style={tdStyle}>{servicio.nombre_servicio}</td>
-                                <td style={tdStyle}>{getNombreCategoria(servicio.categoria_id)}</td>
-                                <td style={tdStyle}>${servicio.precio_unitario}</td>
-                                <td style={tdStyle}>{servicio.unidad_medida}</td>
-                                <td style={tdStyle}>{servicio.duracion_estimada}</td>
-                                <td style={tdStyle}>{(servicio.descuento_porcentaje ?? 0) + "%"}</td>
-                                <td style={tdStyle}>{servicio.estado ? "Activo" : "Inactivo"}</td>
-                                <td style={tdStyle}>{new Date(servicio.fecha_creacion).toLocaleDateString()}</td>
-                                <td style={tdStyle}>{servicio.descripcion}</td>
-                                <td style={tdStyle}>
-                                    <button
-                                        onClick={() => handleEditar(servicio.id)}
-                                        style={{ marginRight: 8 }}
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => handleEliminar(servicio.id)} // si vas a implementarlo luego
-                                        style={{ backgroundColor: 'red', color: 'white' }}
-                                    >
-                                        Eliminar
-                                    </button>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Nombre Servicio</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Categoría</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Precio Unitario</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Unidad de Medida</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Duración Estimada</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Descuento</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Estado</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Fecha de Creación</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Descripción</th>
+                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Acciones</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {servicios.map((servicio) => (
+                                <tr key={servicio.id} className="hover:bg-gray-50">
+                                    <td className="px-4 py-2 text-sm text-gray-800">{servicio.id}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">{servicio.nombre_servicio}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">{getNombreCategoria(servicio.categoria_id)}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">${servicio.precio_unitario}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">{servicio.unidad_medida}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">{servicio.duracion_estimada}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">
+                                        {(servicio.descuento_porcentaje ?? 0) + "%"}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">
+                                        {servicio.estado ? "Activo" : "Inactivo"}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">
+                                        {new Date(servicio.fecha_creacion).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-800">{servicio.descripcion}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-800 space-x-2">
+                                        <button
+                                            onClick={() => handleEditar(servicio.id)}
+                                            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                                        >
+                                            Editar
+                                        </button>
+                                        <button
+                                            onClick={() => handleEliminar(servicio.id)}
+                                            className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
-            <div style={{ marginTop: "20px" }}>
-                <button onClick={handleNuevoServicio}>Nuevo Servicio</button>
-                {/* resto */}
+
+            <div className="mt-6">
+                <button
+                    onClick={handleNuevoServicio}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
+                >
+                    Nuevo Servicio
+                </button>
             </div>
         </div>
     );

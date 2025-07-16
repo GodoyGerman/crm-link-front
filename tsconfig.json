@@ -18,6 +18,8 @@
     "noEmit": true
   },
   "include": [
-    "src"
+    "src",
+    "tailwind.config.js",
+    "postcss.config.cjs"
   ]
 }

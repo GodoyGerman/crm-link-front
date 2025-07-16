@@ -388,42 +388,42 @@ export default function CotizacionForm() {
     // JSX: Formulario completo
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
                 {isEditar ? "Editar Cotización" : "Crear Nueva Cotización"}
             </h2>
 
-            <form>
-                {/* Buscar cliente por número de documento */}
-                <fieldset className="mb-4">
-                    <legend className="font-semibold mb-2">Buscar Cliente por Documento</legend>
-                    <div className="flex items-center gap-2">
+            <form className="space-y-6">
+                {/* Buscar cliente */}
+                <fieldset className="border border-gray-200 rounded p-4">
+                    <legend className="text-lg font-semibold text-gray-700">Buscar Cliente por Documento</legend>
+                    <div className="flex flex-col sm:flex-row items-center gap-2 mt-2">
                         <input
                             type="text"
                             placeholder="Número de documento"
                             value={numeroDocumento}
                             onChange={(e) => setNumeroDocumento(e.target.value)}
-                            className="input flex-grow"
+                            className="flex-grow px-3 py-2 border rounded w-full sm:w-auto"
                         />
                         <button
                             type="button"
                             onClick={handleBuscarCliente}
-                            className="bg-blue-600 text-white px-4 py-2 rounded"
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                         >
                             Buscar
                         </button>
                         <button
                             type="button"
                             onClick={limpiarBusquedaCliente}
-                            className="bg-gray-500 text-white px-4 py-2 rounded"
+                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
                         >
                             Limpiar
                         </button>
                     </div>
-                    {errorBusqueda && <p className="text-red-600 mt-1">{errorBusqueda}</p>}
+                    {errorBusqueda && <p className="text-red-600 mt-2">{errorBusqueda}</p>}
 
                     {clienteSeleccionado && (
-                        <div className="mt-2 p-2 border rounded bg-gray-50">
-                            <p><strong>Cliente encontrado:</strong> {clienteSeleccionado.nombre}</p>
+                        <div className="mt-4 bg-gray-50 p-4 rounded border text-sm text-gray-700">
+                            <p><strong>Cliente:</strong> {clienteSeleccionado.nombre}</p>
                             <p>Correo: {clienteSeleccionado.correo}</p>
                             <p>Teléfono: {clienteSeleccionado.telefono || "N/A"}</p>
                         </div>
@@ -431,210 +431,173 @@ export default function CotizacionForm() {
                 </fieldset>
 
                 {/* Datos cliente */}
-                <fieldset>
-                    <legend className="font-semibold mb-2">Datos Cliente</legend>
-
-                    <label>
-                        Cliente:
-                        {loadingClientes ? (
-                            <div>Cargando clientes...</div>
-                        ) : (
-                            <select
-                                name="nombre_cliente"
-                                value={form.nombre_cliente}
-                                onChange={handleClienteChange}
-                                required
-                                className="input"
-                                disabled={usandoBusquedaDocumento} // deshabilita si usó búsqueda
-                            >
-                                <option value="">-- Seleccione un cliente --</option>
-                                {clientes.map((c) => (
-                                    <option key={c.id} value={c.nombre}>
-                                        {c.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                    </label>
-
-                    <input
-                        name="tipo_identificacion"
-                        placeholder="Tipo Identificación"
-                        value={form.tipo_identificacion}
-                        onChange={handleChange}
-                        required
-                        className="input"
-                    />
-
-                    <input
-                        name="identificacion"
-                        placeholder="Identificación"
-                        value={form.identificacion}
-                        onChange={handleChange}
-                        required
-                        className="input"
-                    />
-
-                    <input
-                        name="correo"
-                        type="email"
-                        placeholder="Correo"
-                        value={form.correo}
-                        onChange={handleChange}
-                        required
-                        className="input"
-                    />
-
-                    <input
-                        name="direccion"
-                        placeholder="Dirección"
-                        value={form.direccion}
-                        onChange={handleChange}
-                        className="input"
-                    />
-
-                    <input
-                        name="telefono"
-                        placeholder="Teléfono"
-                        value={form.telefono}
-                        onChange={handleChange}
-                        className="input"
-                    />
-
-                    <input
-                        name="ciudad"
-                        placeholder="Ciudad"
-                        value={form.ciudad}
-                        onChange={handleChange}
-                        className="input"
-                    />
-
-                    <input
-                        name="contacto"
-                        placeholder="Contacto"
-                        value={form.contacto}
-                        onChange={handleChange}
-                        className="input"
-                    />
+                <fieldset className="border border-gray-200 rounded p-4">
+                    <legend className="text-lg font-semibold text-gray-700">Datos del Cliente</legend>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <select
+                            name="nombre_cliente"
+                            value={form.nombre_cliente}
+                            onChange={handleClienteChange}
+                            required
+                            disabled={usandoBusquedaDocumento}
+                            className="px-3 py-2 border rounded"
+                        >
+                            <option value="">-- Seleccione un cliente --</option>
+                            {clientes.map((c) => (
+                                <option key={c.id} value={c.nombre}>
+                                    {c.nombre}
+                                </option>
+                            ))}
+                        </select>
+                        <input
+                            name="tipo_identificacion"
+                            placeholder="Tipo Identificación"
+                            value={form.tipo_identificacion}
+                            onChange={handleChange}
+                            required
+                            className="input"
+                        />
+                        <input
+                            name="identificacion"
+                            placeholder="Identificación"
+                            value={form.identificacion}
+                            onChange={handleChange}
+                            required
+                            className="input"
+                        />
+                        <input
+                            name="correo"
+                            type="email"
+                            placeholder="Correo"
+                            value={form.correo}
+                            onChange={handleChange}
+                            required
+                            className="input"
+                        />
+                        <input
+                            name="direccion"
+                            placeholder="Dirección"
+                            value={form.direccion}
+                            onChange={handleChange}
+                            className="input"
+                        />
+                        <input
+                            name="telefono"
+                            placeholder="Teléfono"
+                            value={form.telefono}
+                            onChange={handleChange}
+                            className="input"
+                        />
+                        <input
+                            name="ciudad"
+                            placeholder="Ciudad"
+                            value={form.ciudad}
+                            onChange={handleChange}
+                            className="input"
+                        />
+                        <input
+                            name="contacto"
+                            placeholder="Contacto"
+                            value={form.contacto}
+                            onChange={handleChange}
+                            className="input"
+                        />
+                    </div>
                 </fieldset>
 
-                {/* Fechas y condiciones */}
-                <fieldset>
-                    <legend className="font-semibold mb-2 mt-4">Fechas</legend>
-
-                    <label>
-                        Fecha Emisión:
-                        <input
-                            type="date"
-                            name="fecha_emision"
-                            value={form.fecha_emision}
-                            onChange={handleChange}
-                            required
-                            className="input"
-                        />
-                    </label>
-
-                    <label>
-                        Valida Hasta:
-                        <input
-                            type="date"
-                            name="valida_hasta"
-                            value={form.valida_hasta}
-                            onChange={handleChange}
-                            required
-                            className="input"
-                        />
-                    </label>
-
+                {/* Fechas */}
+                <fieldset className="border border-gray-200 rounded p-4">
+                    <legend className="text-lg font-semibold text-gray-700">Fechas y Condiciones</legend>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Fecha Emisión</label>
+                            <input
+                                type="date"
+                                name="fecha_emision"
+                                value={form.fecha_emision}
+                                onChange={handleChange}
+                                required
+                                className="input"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Valida Hasta</label>
+                            <input
+                                type="date"
+                                name="valida_hasta"
+                                value={form.valida_hasta}
+                                onChange={handleChange}
+                                required
+                                className="input"
+                            />
+                        </div>
+                    </div>
                     <textarea
                         name="condiciones"
                         placeholder="Condiciones"
                         value={form.condiciones}
                         onChange={handleChange}
-                        className="textarea"
+                        className="mt-4 w-full border rounded p-2"
+                        rows={3}
                     />
                 </fieldset>
 
-                {/* Items (servicios y cantidades) */}
-                <fieldset>
-                    <legend className="font-semibold mb-2 mt-4">Items</legend>
+                {/* Items */}
+                <fieldset className="border border-gray-200 rounded p-4">
+                    <legend className="text-lg font-semibold text-gray-700">Items</legend>
 
                     {form.items.map((item, index) => (
-                        <div
-                            key={index}
-                            className="item-row"
-                            style={{
-                                marginBottom: "1rem",
-                                borderBottom: "1px solid #ccc",
-                                paddingBottom: "0.5rem",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            {loadingServicios ? (
-                                <div>Cargando servicios...</div>
-                            ) : (
-                                <select
-                                    name="servicio"
-                                    value={item.servicio}
-                                    onChange={(e) => handleItemChange(index, e)}
-                                    required
-                                    className="input"
-                                    style={{ minWidth: "200px" }}
-                                >
-                                    <option value="">-- Seleccione un servicio --</option>
-                                    {servicios.map((s) => (
-                                        <option key={s.id} value={s.nombre_servicio}>
-                                            {s.nombre_servicio}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-2 items-center mt-4 border-b pb-2">
+                            <select
+                                name="servicio"
+                                value={item.servicio}
+                                onChange={(e) => handleItemChange(index, e)}
+                                required
+                                className="col-span-2 px-3 py-2 border rounded"
+                            >
+                                <option value="">-- Servicio --</option>
+                                {servicios.map((s) => (
+                                    <option key={s.id} value={s.nombre_servicio}>
+                                        {s.nombre_servicio}
+                                    </option>
+                                ))}
+                            </select>
                             <input
                                 name="cantidad"
                                 type="number"
                                 placeholder="Cantidad"
                                 value={item.cantidad}
                                 onChange={(e) => handleItemChange(index, e)}
-                                required
                                 min={0}
-                                className="input"
-                                style={{ width: "80px" }}
+                                className="px-3 py-2 border rounded"
                             />
                             <input
                                 name="unidad"
                                 placeholder="Unidad"
                                 value={item.unidad}
-                                onChange={(e) => handleItemChange(index, e)}
                                 readOnly
-                                className="input"
-                                style={{ width: "100px" }}
+                                className="px-3 py-2 border rounded"
                             />
                             <input
                                 name="precio_unitario"
                                 type="number"
-                                placeholder="Precio Unitario"
+                                placeholder="Precio"
                                 value={item.precio_unitario}
                                 onChange={(e) => handleItemChange(index, e)}
-                                required
                                 min={0}
-                                className="input"
-                                style={{ width: "120px" }}
+                                className="px-3 py-2 border rounded"
                             />
                             <input
                                 name="subtotal"
                                 placeholder="Subtotal"
                                 value={item.subtotal.toFixed(2)}
                                 readOnly
-                                className="input"
-                                style={{ width: "120px" }}
+                                className="px-3 py-2 border rounded"
                             />
                             <button
                                 type="button"
                                 onClick={() => eliminarItem(index)}
-                                className="bg-red-600 text-white px-2 py-1 rounded"
+                                className="col-span-full md:col-auto bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
                             >
                                 Eliminar
                             </button>
@@ -644,19 +607,18 @@ export default function CotizacionForm() {
                     <button
                         type="button"
                         onClick={agregarItem}
-                        className="bg-green-600 text-white px-4 py-2 rounded mt-2"
+                        className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
                     >
                         + Agregar Item
                     </button>
                 </fieldset>
 
                 {/* Totales */}
-                <fieldset>
-                    <legend className="font-semibold mb-2 mt-4">Totales</legend>
-
-                    <div className="flex gap-4">
+                <fieldset className="border border-gray-200 rounded p-4">
+                    <legend className="text-lg font-semibold text-gray-700">Totales</legend>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                         <div>
-                            <label>Subtotal:</label>
+                            <label className="block text-sm font-medium text-gray-700">Subtotal</label>
                             <input
                                 type="text"
                                 value={form.subtotal.toFixed(2)}
@@ -665,7 +627,7 @@ export default function CotizacionForm() {
                             />
                         </div>
                         <div>
-                            <label>IVA (19%):</label>
+                            <label className="block text-sm font-medium text-gray-700">IVA (19%)</label>
                             <input
                                 type="text"
                                 value={form.iva.toFixed(2)}
@@ -674,7 +636,7 @@ export default function CotizacionForm() {
                             />
                         </div>
                         <div>
-                            <label>Total:</label>
+                            <label className="block text-sm font-medium text-gray-700">Total</label>
                             <input
                                 type="text"
                                 value={form.total.toFixed(2)}
@@ -685,28 +647,26 @@ export default function CotizacionForm() {
                     </div>
                 </fieldset>
 
-                {/* Botones para guardar o guardar y enviar */}
-                <div className="flex gap-4 mt-6">
+                {/* Botones */}
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
                     <button
                         type="submit"
                         onClick={handleGuardar}
-                        className="bg-blue-600 text-white px-6 py-2 rounded"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
                     >
                         Guardar
                     </button>
-
                     <button
                         type="submit"
                         onClick={handleGuardarYEnviar}
-                        className="bg-green-600 text-white px-6 py-2 rounded"
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
                     >
                         Guardar y Enviar
                     </button>
-
                     <button
                         type="button"
                         onClick={() => navigate("/cotizaciones")}
-                        className="bg-gray-500 text-white px-6 py-2 rounded"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded"
                     >
                         Cancelar
                     </button>

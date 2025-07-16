@@ -45,53 +45,66 @@ const ClientesPage = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>Clientes</h2>
+        <div className="p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Clientes</h2>
+
             {loading ? (
-                <p>Cargando clientes...</p>
+                <p className="text-gray-600">Cargando clientes...</p>
             ) : (
                 <>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr>
-                                <th style={thStyle}>ID</th>
-                                <th style={thStyle}>Nombre</th>
-                                <th style={thStyle}>Identificación</th>
-                                <th style={thStyle}>Empresa</th>
-                                <th style={thStyle}>Correo</th>
-                                <th style={thStyle}>Teléfono</th>
-                                <th style={thStyle}>Dirección</th>
-                                <th style={thStyle}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {clientes.map((cliente) => (
-                                <tr key={cliente.id}>
-                                    <td style={tdStyle}>{cliente.id}</td>
-                                    <td style={tdStyle}>{cliente.nombre}</td>
-                                    <td style={tdStyle}>
-                                        {cliente.tipo_identificacion} {cliente.numero_identificacion}
-                                    </td>
-                                    <td style={tdStyle}>{cliente.nombre_empresa}</td>
-                                    <td style={tdStyle}>{cliente.correo}</td>
-                                    <td style={tdStyle}>{cliente.telefono}</td>
-                                    <td style={tdStyle}>{cliente.direccion}</td>
-                                    <td style={tdStyle}>
-                                        <button
-                                            onClick={() => eliminarCliente(cliente.id!)}
-                                            style={{ marginRight: 8, backgroundColor: "red", color: "white" }}
-                                        >
-                                            Eliminar
-                                        </button>
-                                        <button onClick={() => handleEditar(cliente)}>Editar</button>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">ID</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Nombre</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Identificación</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Empresa</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Correo</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Teléfono</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Dirección</th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Acciones</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {clientes.map((cliente) => (
+                                    <tr key={cliente.id} className="hover:bg-gray-50">
+                                        <td className="px-4 py-2 text-sm text-gray-800">{cliente.id}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-800">{cliente.nombre}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-800">
+                                            {cliente.tipo_identificacion} {cliente.numero_identificacion}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-800">{cliente.nombre_empresa}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-800">{cliente.correo}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-800">{cliente.telefono}</td>
+                                        <td className="px-4 py-2 text-sm text-gray-800">{cliente.direccion}</td>
+                                        <td className="px-4 py-2 space-x-2">
+                                            <button
+                                                onClick={() => eliminarCliente(cliente.id)}
+                                                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
+                                            >
+                                                Eliminar
+                                            </button>
+                                            <button
+                                                onClick={() => handleEditar(cliente)}
+                                                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                                            >
+                                                Editar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div style={{ marginTop: 20 }}>
-                        <button onClick={handleNuevoCliente}>Nuevo Cliente</button>
+                    <div className="mt-6">
+                        <button
+                            onClick={handleNuevoCliente}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow text-sm"
+                        >
+                            Nuevo Cliente
+                        </button>
                     </div>
                 </>
             )}

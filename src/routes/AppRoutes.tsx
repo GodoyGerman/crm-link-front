@@ -9,6 +9,8 @@ import ServicioForm from "../features/servicios/ServicioForm";
 import CotizacionesPage from "../features/cotizaciones/CotizacionesPage";
 import CotizacionForm from "../features/cotizaciones/CotizacionForm";
 import LoginPage from "../features/auth/LoginPage"; // <-- asegúrate de tenerlo
+import UsuariosPage from "../features/usuarios/UsuariosPage";
+import UsuarioForm from "../features/usuarios/UsuarioForm";
 
 export default function AppRoutes() {
     return (
@@ -29,6 +31,9 @@ export default function AppRoutes() {
                     <Route path="cotizaciones" element={<CotizacionesPage />} />
                     <Route path="cotizaciones/nueva" element={<CotizacionForm />} />
                     <Route path="cotizaciones/editar/:id" element={<CotizacionForm modo="editar" />} />
+                    <Route path="/usuarios" element={<UsuariosPage />} />
+                    <Route path="/usuarios/nuevo" element={<UsuarioForm />} />
+                    <Route path="/usuarios/:id/editar" element={<UsuarioForm />} />
                 </Route>
             </Routes>
         </BrowserRouter>

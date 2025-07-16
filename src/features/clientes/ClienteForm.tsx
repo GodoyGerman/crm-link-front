@@ -77,27 +77,123 @@ const ClienteForm = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>Nuevo Cliente</h2>
-            <form onSubmit={handleSubmit}>
-                <input name="nombre" placeholder="Nombre" value={form.nombre} onChange={handleChange} /><br />
-                <input name="tipo_identificacion" placeholder="Tipo ID" value={form.tipo_identificacion} onChange={handleChange} /><br />
-                <input name="numero_identificacion" placeholder="Número ID" value={form.numero_identificacion} onChange={handleChange} /><br />
-                <input name="correo" placeholder="Correo" value={form.correo} onChange={handleChange} /><br />
-                <input name="telefono" placeholder="Teléfono" value={form.telefono} onChange={handleChange} /><br />
-                <input name="direccion" placeholder="Dirección" value={form.direccion} onChange={handleChange} /><br />
-                <input name="ciudad" placeholder="Ciudad" value={form.ciudad} onChange={handleChange} /><br />
-                <input name="nombre_empresa" placeholder="Empresa" value={form.nombre_empresa} onChange={handleChange} /><br />
-                <input name="segmento" placeholder="Segmento" value={form.segmento} onChange={handleChange} /><br />
-                <input name="facebook" placeholder="Facebook" value={form.redes_sociales.facebook} onChange={handleChange} /><br />
-                <input name="linkedin" placeholder="LinkedIn" value={form.redes_sociales.linkedin} onChange={handleChange} /><br />
-                <input name="instagram" placeholder="Instagram" value={form.redes_sociales.instagram} onChange={handleChange} /><br />
-                <input name="medio_adquisicion" placeholder="Medio de adquisición" value={form.medio_adquisicion} onChange={handleChange} /><br />
-                <label>
-                    Activo:
-                    <input type="checkbox" name="activo" checked={form.activo} onChange={(e) => setForm(prev => ({ ...prev, activo: e.target.checked }))} />
-                </label><br />
-                <button type="submit">Guardar Cliente</button>
+        <div className="max-w-2xl mx-auto p-8">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Nuevo Cliente</h2>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                        name="nombre"
+                        placeholder="Nombre"
+                        value={form.nombre}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="tipo_identificacion"
+                        placeholder="Tipo ID"
+                        value={form.tipo_identificacion}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="numero_identificacion"
+                        placeholder="Número ID"
+                        value={form.numero_identificacion}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="correo"
+                        placeholder="Correo"
+                        value={form.correo}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="telefono"
+                        placeholder="Teléfono"
+                        value={form.telefono}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="direccion"
+                        placeholder="Dirección"
+                        value={form.direccion}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="ciudad"
+                        placeholder="Ciudad"
+                        value={form.ciudad}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="nombre_empresa"
+                        placeholder="Empresa"
+                        value={form.nombre_empresa}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="segmento"
+                        placeholder="Segmento"
+                        value={form.segmento}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="facebook"
+                        placeholder="Facebook"
+                        value={form.redes_sociales.facebook}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="linkedin"
+                        placeholder="LinkedIn"
+                        value={form.redes_sociales.linkedin}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="instagram"
+                        placeholder="Instagram"
+                        value={form.redes_sociales.instagram}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                    <input
+                        name="medio_adquisicion"
+                        placeholder="Medio de adquisición"
+                        value={form.medio_adquisicion}
+                        onChange={handleChange}
+                        className="input-field"
+                    />
+                </div>
+
+                <div className="flex items-center space-x-3 mt-4">
+                    <label className="text-sm text-gray-700 font-medium">Activo:</label>
+                    <input
+                        type="checkbox"
+                        name="activo"
+                        checked={form.activo}
+                        onChange={(e) =>
+                            setForm((prev) => ({ ...prev, activo: e.target.checked }))
+                        }
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded shadow"
+                >
+                    Guardar Cliente
+                </button>
             </form>
         </div>
     );

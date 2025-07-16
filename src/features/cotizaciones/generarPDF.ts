@@ -1,16 +1,14 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Función para convertir una URL de imagen a base64
+// Función para convertir una imagen en base64
 async function getBase64FromUrl(url: string): Promise<string> {
     const res = await fetch(url);
     const blob = await res.blob();
 
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-            resolve(reader.result as string);
-        };
+        reader.onloadend = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(blob);
     });
@@ -19,29 +17,38 @@ async function getBase64FromUrl(url: string): Promise<string> {
 export async function generarPDF(cotizacion: any) {
     const doc = new jsPDF();
 
-    // Ajusta esta ruta a donde tengas el logo en tu proyecto (puede ser public/logo.png o assets/logo.png)
+    // Logo
     const logoBase64 = await getBase64FromUrl("/logo.png");
-
-    // Agregar logo
     doc.addImage(logoBase64, "PNG", 10, 10, 40, 20);
 
     // Título
     doc.setFontSize(18);
-    doc.text("Link Soluciones Cotización", 105, 20, { align: "center" });
+    doc.setTextColor(40, 40, 40);
+    doc.text("Link Soluciones - Cotización", 105, 20, { align: "center" });
 
-    // Datos cliente
+    // Línea separadora
+    doc.setDrawColor(200);
+    doc.line(10, 32, 200, 32);
+
+    // Datos del Cliente
     doc.setFontSize(12);
-    doc.text(`Cliente: ${cotizacion.nombre_cliente}`, 10, 40);
-    doc.text(`Identificación: ${cotizacion.identificacion}`, 10, 48);
-    doc.text(`Correo: ${cotizacion.correo}`, 10, 56);
-    doc.text(`Dirección: ${cotizacion.direccion}`, 10, 64);
+    doc.setTextColor(50);
+    doc.text("Datos del Cliente", 10, 40);
+    doc.setFontSize(10);
+    doc.text(`Nombre: ${cotizacion.nombre_cliente}`, 10, 48);
+    doc.text(`Identificación: ${cotizacion.identificacion}`, 10, 54);
+    doc.text(`Correo: ${cotizacion.correo}`, 10, 60);
+    doc.text(`Dirección: ${cotizacion.direccion}`, 10, 66);
     doc.text(`Teléfono: ${cotizacion.telefono}`, 10, 72);
 
     // Fechas
-    doc.text(`Fecha emisión: ${cotizacion.fecha_emision}`, 140, 40);
-    doc.text(`Valida hasta: ${cotizacion.valida_hasta}`, 140, 48);
+    doc.setFontSize(12);
+    doc.text("Fechas", 140, 40);
+    doc.setFontSize(10);
+    doc.text(`Emisión: ${cotizacion.fecha_emision}`, 140, 48);
+    doc.text(`Válida hasta: ${cotizacion.valida_hasta}`, 140, 54);
 
-    // Tabla de items
+    // Tabla de ítems
     const columns = [
         { header: "Servicio", dataKey: "servicio" },
         { header: "Cantidad", dataKey: "cantidad" },
@@ -54,29 +61,73 @@ export async function generarPDF(cotizacion: any) {
         servicio: item.servicio,
         cantidad: item.cantidad,
         unidad: item.unidad,
-        precio_unitario: item.precio_unitario.toFixed(2),
-        subtotal: item.subtotal.toFixed(2),
+        precio_unitario: `$${item.precio_unitario.toFixed(2)}`,
+        subtotal: `$${item.subtotal.toFixed(2)}`,
     }));
 
     autoTable(doc, {
-        startY: 80,
-        head: [columns.map((col) => col.header)],
-        body: rows.map((row) => columns.map((col) => row[col.dataKey])),
+        startY: 85,
+        head: [columns.map(c => c.header)],
+        body: rows.map(r => columns.map(c => r[c.dataKey])),
         styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontStyle: "bold",
+        },
+        bodyStyles: { textColor: 30 },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        theme: "grid",
+        didDrawPage: (data) => {
+            const pageCount = doc.internal.getNumberOfPages();
+            const pageSize = doc.internal.pageSize;
+            const pageHeight = pageSize.height || pageSize.getHeight();
+
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+
+            // Footer centrado con agradecimiento
+            doc.text(
+                `Página ${data.pageNumber} de ${pageCount} — Gracias por confiar en Link Soluciones`,
+                pageSize.width / 2,
+                pageHeight - 10,
+                { align: "center" }
+            );
+        },
     });
 
-    // Totales debajo de la tabla
+    // Totales
     const finalY = (doc as any).lastAutoTable.finalY + 10;
-
-    doc.text(`Subtotal: $${cotizacion.subtotal.toFixed(2)}`, 140, finalY);
-    doc.text(`IVA (19%): $${cotizacion.iva.toFixed(2)}`, 140, finalY + 8);
-    doc.text(`Total: $${cotizacion.total.toFixed(2)}`, 140, finalY + 16);
+    doc.setFontSize(11);
+    doc.setFont(undefined, "bold");
+    doc.text(`Subtotal: $${cotizacion.subtotal.toFixed(2)}`, 200, finalY, { align: "right" });
+    doc.text(`IVA (19%): $${cotizacion.iva.toFixed(2)}`, 200, finalY + 8, { align: "right" });
+    doc.text(`Total: $${cotizacion.total.toFixed(2)}`, 200, finalY + 16, { align: "right" });
+    doc.setFont(undefined, "normal");
 
     // Condiciones
     doc.setFontSize(10);
-    doc.text("Condiciones:", 10, finalY + 25);
-    doc.text(cotizacion.condiciones || "-", 10, finalY + 32, { maxWidth: 180 });
+    doc.setTextColor(50);
+    doc.text("Condiciones:", 10, finalY + 30);
+    doc.setFontSize(9);
+    doc.text(cotizacion.condiciones || "No se especificaron condiciones.", 10, finalY + 37, {
+        maxWidth: 190,
+        align: "left",
+    });
+
+    // Firma o sello
+    doc.setFontSize(10);
+    doc.text("Firma / Gerente: Germán Godoy", 10, finalY + 60);
+    doc.setDrawColor(150);
+    doc.line(10, finalY + 65, 80, finalY + 65); // Línea firma
+    doc.text("Link Soluciones SAS", 10, finalY + 70);
+    doc.text("comercial@linksoluciones.com.co", 10, finalY + 75);
+    doc.text("NIT: 901483324-1", 10, finalY + 80);
+    doc.text("https://www.linksoluciones.com.co/", 10, finalY + 85);
+
+    // Descargar automáticamente
+    const nombreArchivo = `Cotización-LINK-${cotizacion.numero || "SIN-NUMERO"}.pdf`;
+    doc.save(nombreArchivo);
 
     return doc.output("blob");
 }
