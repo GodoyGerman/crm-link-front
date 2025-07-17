@@ -63,6 +63,7 @@ export async function generarPDF(cotizacion: any) {
         { header: "Cantidad", dataKey: "cantidad" },
         { header: "Unidad", dataKey: "unidad" },
         { header: "Precio Unitario", dataKey: "precio_unitario" },
+        { header: "Descuento %", dataKey: "descuento_porcentaje" },  // <-- Nuevo
         { header: "Subtotal", dataKey: "subtotal" },
     ];
 
@@ -72,6 +73,7 @@ export async function generarPDF(cotizacion: any) {
         cantidad: item.cantidad,
         unidad: item.unidad,
         precio_unitario: formatearPrecio(item.precio_unitario),
+        descuento_porcentaje: item.descuento_porcentaje.toFixed(2) + "%",  // <-- Nuevo
         subtotal: formatearPrecio(item.subtotal),
     }));
 
