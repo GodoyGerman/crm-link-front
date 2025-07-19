@@ -178,20 +178,39 @@ export default function CotizacionForm() {
                 try {
                     const cotizacionExistente = await getCotizacionById(Number(id));
                     if (cotizacionExistente) {
+                        const items = cotizacionExistente.items.length
+                            ? cotizacionExistente.items.map((item: Item) => {
+                                const descuento = item.descuento_porcentaje || 0;
+                                const precioConDescuento = item.precio_unitario * (1 - descuento / 100);
+                                const subtotal = item.cantidad * precioConDescuento;
+
+                                return {
+                                    ...item,
+                                    subtotal,
+                                };
+                            })
+                            : [
+                                {
+                                    id: cotizacionExistente.id,
+                                    servicio: "",
+                                    cantidad: 0,
+                                    unidad: "",
+                                    precio_unitario: 0,
+                                    descuento_porcentaje: 0,
+                                    subtotal: 0,
+                                },
+                            ];
+
+                        const subtotalTotal = items.reduce((acc, item) => acc + item.subtotal, 0);
+                        const iva = subtotalTotal * 0.19;
+                        const total = subtotalTotal + iva;
+
                         setForm({
                             ...cotizacionExistente,
-                            items: cotizacionExistente.items.length
-                                ? cotizacionExistente.items
-                                : [
-                                    {
-                                        id: cotizacionExistente.id,
-                                        servicio: "",
-                                        cantidad: 0,
-                                        unidad: "",
-                                        precio_unitario: 0,
-                                        subtotal: 0,
-                                    },
-                                ],
+                            items,
+                            subtotal: subtotalTotal,
+                            iva,
+                            total,
                             tipo_identificacion: cotizacionExistente.tipo_identificacion || "",
                             estado: cotizacionExistente.estado || "",
                             correo: cotizacionExistente.correo || "",
@@ -213,6 +232,7 @@ export default function CotizacionForm() {
             })();
         }
     }, [id, isEditar, navigate]);
+
 
     // Maneja cambios simples en inputs (texto, textarea)
     const handleChange = (
@@ -269,6 +289,16 @@ export default function CotizacionForm() {
             const subtotalTotal = newItems.reduce((acc, item) => acc + item.subtotal, 0);
             const iva = subtotalTotal * 0.19;
             const total = subtotalTotal + iva;
+
+            // 👉 Aquí pones los logs para revisar el estado
+            console.log("---- DEBUG ----");
+            newItems.forEach((item, idx) => {
+                console.log(`Item ${idx + 1}:`, item);
+            });
+            console.log("Subtotal total:", subtotalTotal);
+            console.log("IVA:", iva);
+            console.log("Total:", total);
+            console.log("---------------");
 
             return {
                 ...prev,
